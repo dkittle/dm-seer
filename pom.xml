@@ -11,10 +11,24 @@
 
   <properties>
     <jettyVersion>11.0.12</jettyVersion>
+    <version.jakarta.ws.rs.api>3.1.0</version.jakarta.ws.rs.api>
+    <version.org.jboss.resteasy>6.2.0.Final</version.org.jboss.resteasy>
     <mainClass>ca.kittle.Application</mainClass>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-bom</artifactId>
+        <version>${version.org.jboss.resteasy}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -23,10 +37,17 @@
       <version>${jettyVersion}</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <version>5.0.0</version>
-      <scope>provided</scope>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.14.0</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -49,16 +70,10 @@
         </exclusion>
       </exclusions>
     </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-<!--      <plugin>-->
-<!--        <groupId>org.eclipse.jetty</groupId>-->
-<!--        <artifactId>jetty-maven-plugin</artifactId>-->
-<!--        <version>${jettyVersion}</version>-->
-<!--      </plugin>-->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
