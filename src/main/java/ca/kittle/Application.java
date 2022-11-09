@@ -32,8 +32,17 @@ public class Application
         logger.info("PORT {}", System.getenv("PORT"));
         logger.info("Bot Token {}", System.getenv("COUNTER_BOT_TOKEN"));
         startWebServer();
+
+        DdbProxy proxy = new DdbProxy();
+        //https://ddb.ac/characters/54736595/H0hA0L
+        proxy.getCharacter("54736595");
+
+
         logger.info("Hopefully starting up Discord Listener");
         startDiscordListener();
+//        DdbProxy proxy = new DdbProxy();
+//        //https://ddb.ac/characters/54736595/H0hA0L
+//        proxy.getCharacter("54736595/H0hA0L");
     }
 
     private static void startWebServer() {
