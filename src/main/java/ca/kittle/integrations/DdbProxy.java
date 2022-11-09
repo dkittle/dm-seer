@@ -1,4 +1,4 @@
-package ca.kittle;
+package ca.kittle.integrations;
 
 import ca.kittle.models.CharacterResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;

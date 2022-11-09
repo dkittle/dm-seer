@@ -1,14 +1,8 @@
 package ca.kittle;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.ServletException;
+import ca.kittle.integrations.DdbProxy;
+import ca.kittle.integrations.DiscordListener;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.EnumSet;
 
 import net.dv8tion.jda.api.JDA;
@@ -21,15 +15,14 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Application
+public class DmSeer
 {
-    private static Logger logger = LoggerFactory.getLogger(Application.class);
+    private static Logger logger = LoggerFactory.getLogger(DmSeer.class);
 
     public static void main(String[] args) throws Exception {
         logger.info("Starting DM Seer application");
         logger.info("Environment variables:");
-        logger.info("RDS_HOSTNAME {}", System.getenv("RDS_HOSTNAME"));
-        logger.info("PORT {}", System.getenv("PORT"));
+        logger.info("PORT {}", System.getenv("PORT", 5000));
         logger.info("Bot Token {}", System.getenv("COUNTER_BOT_TOKEN"));
         startWebServer();
 
