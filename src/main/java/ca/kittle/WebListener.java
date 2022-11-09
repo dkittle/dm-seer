@@ -28,11 +28,12 @@ public class WebListener extends AbstractHandler {
 
         int responseCode = switch (context.noun.toLowerCase()) {
             case "health" -> {
-                logger.trace("health check");
+                logger.info("health check");
                 yield HttpServletResponse.SC_OK;
             }
             case "character" -> {
 //                retrieveCharacter(id);
+                logger.info("Noun: " + context.noun + ", id:" + context.id);
                 response.getWriter().println("Noun: " + context.noun + ", id:" + context.id);
                 yield HttpServletResponse.SC_OK;
             }
