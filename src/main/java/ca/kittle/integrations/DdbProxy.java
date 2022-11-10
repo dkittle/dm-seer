@@ -40,15 +40,15 @@ public class DdbProxy {
 //        response.getEntity();
 //        logger.info("Characters {}", characters.toString());
         logger.info("Response status {}", response.getStatusInfo());
-        String jsonResponse = response.readEntity(String.class);
-//        CharacterResponse characterData = response.readEntity(CharacterResponse.class);
-//        logger.info("Response message {}", characterData.message());
+//        String jsonResponse = response.readEntity(String.class);
+        CharacterResponse characterData = response.readEntity(CharacterResponse.class);
+        logger.info("Response message {}", characterData.message());
         final ObjectMapper mapper = new ObjectMapper()
                 .enable(SerializationFeature.INDENT_OUTPUT);
-        try {
-            var deserialized = mapper.readValue(jsonResponse, CharacterResponse.class);
-            logger.info("Response message {}", deserialized.message());
-            DdbCharacter character = deserialized.data();
+//        try {
+//            var deserialized = mapper.readValue(jsonResponse, CharacterResponse.class);
+            logger.info("Response message {}", characterData.message());
+            DdbCharacter character = characterData.data();
             logger.info("Username {}", character.username());
             logger.info("Str {}", character.strength());
             logger.info("Dex {}", character.dexterity());
@@ -56,9 +56,9 @@ public class DdbProxy {
             logger.info("Int {}", character.intelligence());
             logger.info("Wis {}", character.wisdom());
             logger.info("Cha {}", character.charisma());
-        } catch (JsonProcessingException e) {
-            logger.warn("Cannot parse character response", e);
-        }
+//        } catch (JsonProcessingException e) {
+//            logger.warn("Cannot parse character response", e);
+//        }
         client.disconnect(response);
         return null;
     }

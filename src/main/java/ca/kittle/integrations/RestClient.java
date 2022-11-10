@@ -6,6 +6,9 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
+import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
+import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ public class RestClient {
     public Response connect(){
         logger.info("Connecting");
         client = (ResteasyClient)ClientBuilder.newClient();
+        client.register(ResteasyJackson2Provider.class);
         logger.info("Connecting to {}", baseUrl);
         target = client.target(baseUrl);
         Invocation.Builder request = target.request();
@@ -33,7 +37,6 @@ public class RestClient {
             logger.info("Building response");
             Response response = request.get();
             logger.info("Response status {}", response.getStatusInfo());
-//            disconnect(response);
             return response;
         }
         catch (RuntimeException e) {

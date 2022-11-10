@@ -41,7 +41,7 @@ public record DdbCharacter(
 
     private int getStatValue(int statIndex) {
         try {
-            DdbStat str = stats.stream().filter(t -> t.id() == statIndex).collect(Collectors.toList()).get(0);
+            DdbStat str = stats.stream().filter(t -> t.id() == statIndex).toList().get(0);
             return str.value();
         }
         catch (NullPointerException e) {

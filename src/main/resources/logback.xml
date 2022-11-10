@@ -19,6 +19,10 @@
         <appender-ref ref="FILE" />
     </logger>
 
+    <logger name="org.jboss" level="ERROR">
+        <appender-ref ref="FILE" />
+    </logger>
+
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>

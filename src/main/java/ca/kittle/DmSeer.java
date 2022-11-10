@@ -5,13 +5,12 @@ import ca.kittle.integrations.DiscordListener;
 
 import java.util.EnumSet;
 
+import jakarta.ws.rs.SeBootstrap;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,41 +18,27 @@ public class DmSeer
 {
     private static Logger logger = LoggerFactory.getLogger(DmSeer.class);
 
-    public static void main(String[] args) throws Exception {
-        logger.info("Starting DM Seer application");
-        logger.info("Environment variables:");
-        logger.info("PORT {}", System.getenv("PORT", 5000));
-        logger.info("Bot Token {}", System.getenv("COUNTER_BOT_TOKEN"));
-        startWebServer();
-
-        DdbProxy proxy = new DdbProxy();
-        //https://ddb.ac/characters/54736595/H0hA0L
-        proxy.getCharacter("54736595");
-
-
-        logger.info("Hopefully starting up Discord Listener");
+    public static void main(final String[] args) throws Exception {
+        logger.warn("---------------------------- Starting app ------------------------------");
+        SeBootstrap.Configuration configuration = SeBootstrap.Configuration.builder()
+                .host("localhost")
+                .port(5000)
+                .protocol("http")
+                .build();
+        SeBootstrap.start(RestAPI.class, configuration)
+                .thenAccept(instance -> {
+                    instance.stopOnShutdown(stopResult -> logger.info("Stopped container {}", stopResult.unwrap(Object.class)));
+                    logger.info("Container running at {}", instance.configuration().baseUri());
+                    logger.info("Example: {}",
+                            instance.configuration().baseUriBuilder().path("api/").build());
+                    logger.info("Send SIGKILL to shutdown container");
+                });
         startDiscordListener();
-//        DdbProxy proxy = new DdbProxy();
-//        //https://ddb.ac/characters/54736595/H0hA0L
-//        proxy.getCharacter("54736595/H0hA0L");
-    }
-
-    private static void startWebServer() {
-        Server server = new Server(5000);
-        server.setHandler(new WebListener());
-        logger.info("Starting DM Seer web server on port 5000");
-        try {
-            server.start();
-            logger.info("Started web server");
-//            server.join();
-        } catch(Exception e) {
-            logger.error("Problem starting web server", e);
-        }
-        logger.info("Finished with web server");
+        Thread.currentThread().join();
     }
 
     private static void startDiscordListener() {
-        String token = System.getenv("COUNTER_BOT_TOKEN");
+        String token = System.getenv("SEER_BOT_TOKEN");
         logger.info("Starting up Discord Listener");
         if (token != null && !token.isBlank())
             logger.info("A bot token was found.");
