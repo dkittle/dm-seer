@@ -19,10 +19,11 @@ public class DmSeer
     private static Logger logger = LoggerFactory.getLogger(DmSeer.class);
 
     public static void main(final String[] args) throws Exception {
-        logger.warn("---------------------------- Starting app ------------------------------");
+        logger.info("Starting DM Seer Application");
+        var port = determinePortNumber();
         SeBootstrap.Configuration configuration = SeBootstrap.Configuration.builder()
                 .host("localhost")
-                .port(5000)
+                .port(port)
                 .protocol("http")
                 .build();
         SeBootstrap.start(RestAPI.class, configuration)
@@ -35,6 +36,20 @@ public class DmSeer
                 });
         startDiscordListener();
         Thread.currentThread().join();
+    }
+
+    private static int determinePortNumber() {
+//        String ENV_VAR1 = Optional.ofNullable(System.getenv("ENV_VAR1")).orElseThrow(
+//                () -> new CustomException("ENV_VAR1 is not set in the environment"));
+        int port = 5000;
+        var env = System.getenv("PORT");
+        if (env != null) {
+            try {
+                port = Integer.parseInt(env);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return port;
     }
 
     private static void startDiscordListener() {
