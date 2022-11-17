@@ -12,13 +12,13 @@ import ca.kittle.models.DdbCharacter;
 
 public class DdbProxy {
 
-    private static Logger logger = LoggerFactory.getLogger(DdbProxy.class);
+    private static final Logger logger = LoggerFactory.getLogger(DdbProxy.class);
 
     private static final String DDB_DOMAIN = "https://character-service.dndbeyond.com/character/v5";
     private static final String DDB_TOKEN_NAME = "COBALT_TOKEN";
     private static String AUTH_TOKEN = "";
 
-    RestClient client;
+    private RestClient client;
 
     private boolean connect(String restEndpoint) {
         logger.info("Connecting to D&D Beyond");
@@ -36,11 +36,7 @@ public class DdbProxy {
             return null;
         Response response = client.connect();
         logger.info("Getting character {}", id);
-//        List<Character> characters = response.readEntity(new GenericType<List<Character>>() {});
-//        response.getEntity();
-//        logger.info("Characters {}", characters.toString());
         logger.info("Response status {}", response.getStatusInfo());
-//        String jsonResponse = response.readEntity(String.class);
         CharacterResponse characterData = response.readEntity(CharacterResponse.class);
         logger.info("Response message {}", characterData.message());
         final ObjectMapper mapper = new ObjectMapper()
@@ -59,6 +55,7 @@ public class DdbProxy {
 //        } catch (JsonProcessingException e) {
 //            logger.warn("Cannot parse character response", e);
 //        }
+
         client.disconnect(response);
         return null;
     }

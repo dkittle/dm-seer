@@ -90,6 +90,11 @@
       <artifactId>junit5</artifactId>
       <version>4.2.20</version>
     </dependency>
+    <!-- dependency>
+      <groupId>au.com.dius.pact.provider</groupId>
+      <artifactId>junit5</artifactId>
+      <version>4.3.17</version>
+    </dependency -->
   </dependencies>
 
   <build>
@@ -144,6 +149,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.2</version>
+        <!-- configuration>
+          <useSystemClassLoader>false</useSystemClassLoader>
+        </configuration -->
       </plugin>
     </plugins>
   </build>
