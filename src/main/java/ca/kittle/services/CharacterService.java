@@ -1,6 +1,5 @@
 package ca.kittle.services;
 
-import ca.kittle.CharacterResource;
 import ca.kittle.integrations.DdbProxy;
 import ca.kittle.models.DdbCharacter;
 import jakarta.validation.constraints.NotNull;

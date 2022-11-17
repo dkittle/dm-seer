@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 public class DmSeer
 {
-    private static Logger logger = LoggerFactory.getLogger(DmSeer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DmSeer.class);
 
     public static void main(final String[] args) throws Exception {
         logger.info("Starting DM Seer Application");
