@@ -1,9 +1,6 @@
 package ca.kittle.resources;
 
-import jakarta.ws.rs.core.Response;
 import au.com.dius.pact.consumer.MockServer;
-import au.com.dius.pact.consumer.dsl.DslPart;
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
@@ -13,7 +10,6 @@ import ca.kittle.integrations.RestClient;
 import ca.kittle.models.Health;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.ws.rs.client.ClientBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,11 +41,11 @@ public class HealthConsumerPactTest {
 //        assert (response.getStatusInfo() == 200);
 //        System.out.println("response " + response.readEntity(String.class));
         var health = response.readEntity(Health.class);
-        assert("OK".equals(health.code()));
+        assert ("OK".equals(health.code()));
         response.close();
     }
 
-    @Pact(provider="HealthProvider", consumer="HealthConsumer")
+    @Pact(provider = "HealthProvider", consumer = "HealthConsumer")
     public RequestResponsePact createHealthPact(PactDslWithProvider builder) {
         return builder
                 .given("health test state")

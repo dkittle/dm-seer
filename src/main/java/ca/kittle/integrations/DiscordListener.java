@@ -12,6 +12,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class DiscordListener extends ListenerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(DiscordListener.class);
@@ -33,12 +36,16 @@ public class DiscordListener extends ListenerAdapter {
         // Check whether the message was sent in a guild / server
         if (event.isFromGuild()) {
             // This is a message from a server
-            logger.info(String.format("[%s] [%#s] %#s: %s\n",
+            logger.info(String.format("[%s] [%#s] %#s: '%s'\n",
                     event.getGuild().getName(), // The name of the server the user sent the message in, this is generally referred to as "guild" in the API
                     channel, // The %#s makes use of the channel name and displays as something like #general
                     author,  // The %#s makes use of User#getAsTag which results in something like Minn#6688
                     message.getContentDisplay() // This removes any unwanted mention syntax and converts it to a readable string
             ));
+            logger.info("Event received: member {}, info {}", event.getMember(), event.getRawData().keys());
+            logger.info("Raw message: {}", message.getContentRaw());
+
+            parseMessage(message.getContentDisplay());
         } else {
             // This is a message from a private channel
             logger.info(String.format("[direct] %#s: %s\n",
@@ -60,6 +67,35 @@ public class DiscordListener extends ListenerAdapter {
                             .getName()          // And then print out the name of that channel
             );
         }
+    }
+
+    private void parseMessage(String content) {
+        logger.info("Parsing content");
+        var temp = content.lines().findFirst();
+        if (temp.isEmpty()) {
+            logger.warn("empty message");
+            return;
+        }
+        var firstLine = temp.get();
+        var parts = firstLine.split(" .");
+        var author = "";
+        var command = "";
+        if (parts.length > 1) {
+            author = parts[0];
+            command = parts[1];
+        }
+        logger.info("length, author, commend '{}' {} '{}' '{}'", firstLine, parts.length, author, command);
+        if (command.equals(":game_die:")) {
+            parseDiceRoll(content);
+        }
+    }
+
+    private void parseDiceRoll(String content) {
+        logger.info("Parsing die roll");
+        var lines = content.lines().toList();
+        var result = lines.stream().filter(s -> s.startsWith("**Result**")).findFirst().get();
+        var total = lines.stream().filter(s -> s.startsWith("**Total**")).findFirst().get();
+        logger.info("Results of the rolls {}, and total rolled {}", result, total);
     }
 
     @Override

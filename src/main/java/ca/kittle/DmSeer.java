@@ -78,6 +78,7 @@ public class DmSeer
             // and only enable the provided set of intents. All other intents are disabled, so you won't receive events for those.
             logger.info("Building Discord listener");
             JDA jda = JDABuilder.createLight(token, intents)
+                    .setEventPassthrough(true)
                     // On this builder, you are adding all your event listeners and session configuration
                     .addEventListeners(new DiscordListener())
                     // You can do lots of configuration before starting, checkout all the setters on the JDABuilder class!
