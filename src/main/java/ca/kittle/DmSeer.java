@@ -88,8 +88,7 @@ public class DmSeer
 
             logger.info("Discord Listener attached");
             jda.getRestPing().queue(ping ->
-                    // shows ping in milliseconds
-                    logger.info("Logged in with ping: " + ping)
+                    logger.info("Ping time to Discord server is {}ms ", ping)
             );
 
             // If you want to access the cache, you can use awaitReady() to block the main thread until the jda instance is fully loaded
