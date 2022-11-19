@@ -39,8 +39,7 @@ public class DmSeer
     }
 
     private static int determinePortNumber() {
-//        String ENV_VAR1 = Optional.ofNullable(System.getenv("ENV_VAR1")).orElseThrow(
-//                () -> new CustomException("ENV_VAR1 is not set in the environment"));
+
         int port = 5000;
         var env = System.getenv("PORT");
         if (env != null) {

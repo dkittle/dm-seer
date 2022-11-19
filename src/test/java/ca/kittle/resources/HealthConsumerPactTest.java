@@ -36,7 +36,7 @@ public class HealthConsumerPactTest {
     @Test
     void testConsumer(MockServer mockServer) throws IOException {
 //        RestClient client =
-        jakarta.ws.rs.core.Response response = new RestClient(mockServer.getUrl() + "/api/health").connect();
+        jakarta.ws.rs.core.Response response = new RestClient(mockServer.getUrl() + "/api/health").get();
 //        var response = ClientBuilder.newClient().target(mockServer.getUrl() + "/api/health").request().get();
 //        assert (response.getStatusInfo() == 200);
 //        System.out.println("response " + response.readEntity(String.class));

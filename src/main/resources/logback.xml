@@ -15,7 +15,7 @@
         </encoder>
     </appender>
 
-    <logger name="ca.kittle" level="INFO">
+    <logger name="ca.kittle" level="DEBUG">
         <appender-ref ref="FILE" />
     </logger>
 

@@ -1,4 +1,4 @@
-package ca.kittle.models;
+package ca.kittle.models.integrations;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
