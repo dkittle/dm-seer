@@ -1,5 +1,6 @@
 package ca.kittle;
 
+import ca.kittle.resources.CampaignResource;
 import ca.kittle.resources.CharacterResource;
 import ca.kittle.resources.HealthResource;
 import jakarta.ws.rs.ApplicationPath;
@@ -16,6 +17,7 @@ public class RestAPI extends Application {
     public Set<Class<?>> getClasses() {
         return Set.of(
                 CharacterResource.class,
+                CampaignResource.class,
                 HealthResource.class
         );
     }
