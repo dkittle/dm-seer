@@ -2,16 +2,7 @@ openapi: 3.0.3
 info:
   title: DM Seer
   description: |-
-    This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
-    Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
-    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
-    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
-
-    _If you're looking for the Swagger 2.0/OAS 2.0 version of Petstore, then click [here](https://editor.swagger.io/?url=https://petstore.swagger.io/v2/swagger.yaml). Alternatively, you can load via the `Edit > Load Petstore OAS 2.0` menu option!_
-    
-    Some useful links:
-    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
-    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+    API for DM Seer.
   termsOfService: https://www.beholderconflux.com/terms/
   contact:
     email: don@kittle.ca
@@ -29,6 +20,28 @@ tags:
   - name: character
     description: Operations about user
 paths:
+  /encounters:
+    get:
+      tags:
+        - encounter
+      summary: Find encounter by ID
+      description: Returns all encounters for the user
+      operationId: getEncounters
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfEncounters'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Encounter not found
+      security:
+        - api_key: []
+        - petstore_auth:
+            - read:encounters
   /encounter:
     put:
       tags:
@@ -198,7 +211,33 @@ components:
           type: integer
           format: int32
           description: Suggested average party level
-          example: 2
+          example: 1
+    ArrayOfEncounters:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          campaign:
+            type: string
+          location:
+            type: string
+          suggestedAPL:
+            type: integer
+      example:
+        - id: 107
+          name: Kennel
+          campaign: Lost Mine of Phandelver
+          location: Cragmaw Hideout
+          suggestedAPL: 1
+        - id: 201
+          name: Tresendar Crypts
+          campaign: Lost Mine of Phandelver
+          location: Redbrand Hideout
+          suggestedAPL: 2
     ApiResponse:
       type: object
       properties:
@@ -213,7 +252,7 @@ components:
           type: string
           example: Encounter created.
   requestBodies:
-    Pet:
+    Encounter:
       description: Encounter object
       content:
         application/json:
