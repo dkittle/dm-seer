@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: DM Seer
+  description: |-
+    This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
+    Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
+    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
+    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
+
+    _If you're looking for the Swagger 2.0/OAS 2.0 version of Petstore, then click [here](https://editor.swagger.io/?url=https://petstore.swagger.io/v2/swagger.yaml). Alternatively, you can load via the `Edit > Load Petstore OAS 2.0` menu option!_
+    
+    Some useful links:
+    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+  termsOfService: https://www.beholderconflux.com/terms/
+  contact:
+    email: don@kittle.ca
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+  - url: https://dndcombat.run/api
+tags:
+  - name: encounter
+    description: A planned combat encounter
+  - name: creature
+    description: A creature, including named NPCs
+  - name: character
+    description: Operations about user
+paths:
+  /encounter:
+    put:
+      tags:
+        - encounter
+      summary: Update an existing encounter
+      description: Update an existing encounter by Id
+      operationId: updateEncounter
+      requestBody:
+        description: Update an existent encounter
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Encounter'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'          
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Encounter not found
+        '405':
+          description: Validation exception
+      security:
+        - petstore_auth:
+            - write:encounters
+            - read:encounters
+    post:
+      tags:
+        - encounter
+      summary: Add a new encounter
+      description: Add a new encounter
+      operationId: addEncounter
+      requestBody:
+        description: Create a new encounter
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Encounter'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'
+        '405':
+          description: Invalid input
+      security:
+        - petstore_auth:
+            - write:encounters
+            - read:encounters
+  /encounter/{encounterId}:
+    get:
+      tags:
+        - encounter
+      summary: Find encounter by ID
+      description: Returns a single encounter
+      operationId: getEncounterById
+      parameters:
+        - name: encounterId
+          in: path
+          description: ID of encounter to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'          
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Encounter not found
+      security:
+        - api_key: []
+        - petstore_auth:
+            - write:encounters
+            - read:encounters
+    delete:
+      tags:
+        - encounter
+      summary: Deletes an encounter
+      description: delete an encounter
+      operationId: deleteEncounter
+      parameters:
+        - name: api_key
+          in: header
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: encounterId
+          in: path
+          description: Encounter id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '400':
+          description: Invalid encounter value
+      security:
+        - petstore_auth:
+            - write:encounters
+            - read:encounters
+components:
+  schemas:
+    Location:
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 103
+        name:
+          type: string
+          example: Triboar Trail
+    Campaign:
+      required:
+        - id
+        - name
+        - official
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Lost Mine of Phandelver
+        official:
+          type: boolean
+          example: true
+    Encounter:
+      required:
+        - id
+        - name
+        - suggestedAPL
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1023
+        name:
+          type: string
+          example: Goblin Amblush
+        campaign:
+          $ref: '#/components/schemas/Campaign'
+        location:
+          $ref: '#/components/schemas/Location'
+        suggestedAPL:
+          type: integer
+          format: int32
+          description: Suggested average party level
+          example: 2
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 0
+        type:
+          type: string
+          example: createEncounter
+        message:
+          type: string
+          example: Encounter created.
+  requestBodies:
+    Pet:
+      description: Encounter object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Encounter'
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:encounters: modify encounters in your account
+            read:encounters: read encounters
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

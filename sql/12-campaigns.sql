@@ -1,6 +1,6 @@
 
 INSERT INTO campaigns (id, campaign_name, official)
-VALUES (1, "Lost Mines of Phandelver", 1);
+VALUES (1, "Lost Mine of Phandelver", 1);
 
 INSERT INTO locations (id, name)
 VALUES (1, "Triboar Trail"),

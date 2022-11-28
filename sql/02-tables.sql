@@ -71,7 +71,7 @@ FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id),
 
 CREATE TABLE encounters (
 id serial PRIMARY KEY,
-encounter_name VARCHAR (255) NOT NULL,
+name VARCHAR (255) NOT NULL,
 campaign_id INT,
 location_id INT,
 suggested_apl INT,

@@ -1,5 +1,5 @@
 
-INSERT INTO encounters (id, encounter_name, campaign_id, location_id, suggest_apl, created_by)
+INSERT INTO encounters (id, name, campaign_id, location_id, suggested_apl, created_by)
 VALUES
 (1, "Goblin Ambush", 1, 1, 1, 1),
 (2, "Goblin Blind", 1, 2, 1, 1),
