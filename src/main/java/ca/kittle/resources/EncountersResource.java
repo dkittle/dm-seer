@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/encounters")
-public class EncounterResource {
+public class EncountersResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(EncounterResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(EncountersResource.class);
 
     private final EncounterRepository encounters = new EncounterRepository();
 
