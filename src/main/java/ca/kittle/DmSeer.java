@@ -41,7 +41,7 @@ public class DmSeer
     private static int determinePortNumber() {
 
         int port = 5000;
-        var env = System.getenv("PORT");
+        var env = System.getenv("LOCAL_PORT");
         if (env != null) {
             try {
                 port = Integer.parseInt(env);
