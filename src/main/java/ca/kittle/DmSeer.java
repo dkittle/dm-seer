@@ -55,9 +55,9 @@ public class DmSeer
         String token = System.getenv("SEER_BOT_TOKEN");
         logger.info("Starting up Discord Listener");
         if (token != null && !token.isBlank())
-            logger.info("A bot token was found.");
+            logger.debug("A bot token was found.");
         else
-            logger.info("Bot token is missing.");
+            logger.warn("Bot token is missing.");
 
         EnumSet<GatewayIntent> intents = EnumSet.of(
                 // Enables MessageReceivedEvent for guild (also known as servers)

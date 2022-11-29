@@ -66,7 +66,7 @@ CREATE TABLE creatures (
 id serial PRIMARY KEY,
 name VARCHAR(100) NOT NULL,
 challenge_rating_id INT NOT NULL,
-FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id),
+FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id)
 );
 
 CREATE TABLE encounters (
