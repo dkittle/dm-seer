@@ -1,22 +1,22 @@
 
-INSERT INTO encounters (id, name, campaign_id, location_id, suggested_apl, created_by)
+INSERT INTO encounters (name, campaign_id, location_id, suggested_acl, created_by)
 VALUES
-(1, 'Goblin Ambush', 1, 1, 1, 1),
-(2, 'Goblin Blind', 1, 2, 1, 1),
-(3, 'Kennel', 1, 2, 1, 1),
-(4, 'Overpass', 1, 2, 1, 1),
-(5, 'Goblin Den', 1, 2, 1, 1),
-(6, 'Twin Pools Cave', 1, 2, 1, 1),
-(7, 'Klargs Cave', 1, 2, 1, 1),
-(8, 'Confrontation', 1, 3, 2, 1),
-(9, 'Barracks', 1, 5, 2, 1),
-(10, 'Tresendar Crypts', 1, 5, 2, 1),
-(11, 'Slave Pens', 1, 5, 2, 1),
-(12, 'Crevasse', 1, 5, 2, 1),
-(13, 'Guard Barracks', 1, 5, 2, 1),
-(14, 'Common Room', 1, 5, 2, 1),
-(15, 'Glasstaffs Quarters', 1, 5, 2, 1),
-(16, 'Old Owl Well', 1, 6, NULL, 1);
+('Goblin Ambush', 1, 1, 1, 1),
+('Goblin Blind', 1, 2, 1, 1),
+('Kennel', 1, 2, 1, 1),
+('Overpass', 1, 2, 1, 1),
+('Goblin Den', 1, 2, 1, 1),
+('Twin Pools Cave', 1, 2, 1, 1),
+('Klargs Cave', 1, 2, 1, 1),
+('Confrontation', 1, 3, 2, 1),
+('Barracks', 1, 5, 2, 1),
+('Tresendar Crypts', 1, 5, 2, 1),
+('Slave Pens', 1, 5, 2, 1),
+('Crevasse', 1, 5, 2, 1),
+('Guard Barracks', 1, 5, 2, 1),
+('Common Room', 1, 5, 2, 1),
+('Glasstaffs Quarters', 1, 5, 2, 1),
+('Old Owl Well', 1, 6, NULL, 1);
 
 INSERT INTO encounter_creatures (encounter_id, creature_id, creature_numbers)
 VALUES

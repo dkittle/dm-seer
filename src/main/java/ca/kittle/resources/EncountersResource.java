@@ -16,25 +16,11 @@ public class EncountersResource {
 
     private final EncounterRepository encounters = new EncounterRepository();
 
-    @POST
-    @Path("/{encounterId}/creature/{creatureId}/{number}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response addCreature(@PathParam("encounterId") long encounterId, @PathParam("creatureId") long creatureId, @PathParam("number") int number) {
-        logger.debug("Adding creature {} to encounter.", creatureId);
-        try {
-            encounters.addCreature(encounterId, creatureId, number);
-        }
-        catch (NotFoundException e) {
-            logger.error(e.getMessage(), e);
-            return Response.status(404).build();
-        }
-        return Response.ok().build();
-    }
     @GET
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
     public Response encounters() {
-        logger.debug("Getting active campaigns");
+        logger.debug("Getting encounters");
         return Response.ok(encounters.encounters()).build();
     }
 

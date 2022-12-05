@@ -1,16 +1,17 @@
 
-INSERT INTO campaigns (id, campaign_name, official)
-VALUES (1, 'Lost Mine of Phandelver', true);
+INSERT INTO campaigns (name, official)
+VALUES ('Lost Mine of Phandelver', true);
 
-INSERT INTO locations (id, name)
-VALUES (1, 'Triboar Trail'),
-(2, 'Cragmaw Hideout'),
-(3, 'Phandalin'),
-(4, 'Sleeping Giant'),
-(5, 'Redbrand Hideout'),
-(6, 'Old Owl Well'),
-(7, 'Thundertree'),
-(8, 'Wyvern Tor'),
-(9, 'Cragmaw Castle'),
-(10, 'Wave Echo Cave');
+INSERT INTO locations (name)
+VALUES
+    ('Triboar Trail'),
+    ('Cragmaw Hideout'),
+    ('Phandalin'),
+    ('Sleeping Giant'),
+    ('Redbrand Hideout'),
+    ('Old Owl Well'),
+    ('Thundertree'),
+    ('Wyvern Tor'),
+    ('Cragmaw Castle'),
+    ('Wave Echo Cave');
 

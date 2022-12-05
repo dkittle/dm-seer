@@ -2,7 +2,6 @@ package ca.kittle.repositories;
 
 import ca.kittle.integrations.Database;
 import ca.kittle.models.app.Campaign;
-import ca.kittle.models.app.Location;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +21,12 @@ public class CampaignRepository {
         try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setLong(1, id);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                result = new Campaign(rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getBoolean("official"));
+            try (ResultSet rs = statement.executeQuery()) {
+                result = oneCampaignFromRS(rs);
             }
         } catch (SQLException e) {
             logger.error("Problem getting campaign", e);
+            throw new NotFoundException("Campaign " + id + " not found.");
         }
         return result;
     }
@@ -42,17 +39,20 @@ public class CampaignRepository {
         try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, name.toLowerCase());
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                result = new Campaign(rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getBoolean("official"));
+            try (ResultSet rs = statement.executeQuery()) {
+                result = oneCampaignFromRS(rs);
             }
         } catch (SQLException e) {
-            logger.error("Problem getting location", e);
+            logger.error("Problem getting campaign", e);
+            throw new NotFoundException("Campaign " + name + " not found.");
         }
         return result;
     }
 
-
+    private Campaign oneCampaignFromRS(ResultSet rs) throws SQLException {
+        rs.next();
+        return new Campaign(rs.getLong("id"),
+                rs.getString("name"),
+                rs.getBoolean("official"));
+    }
 }

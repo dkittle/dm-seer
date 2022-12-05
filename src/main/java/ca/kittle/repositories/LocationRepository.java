@@ -18,15 +18,16 @@ public class LocationRepository {
     public Location location(long id) {
         logger.info("Get a specific location");
         Location result = null;
-        var query = "SELECT * from location where location.id=?";
+        var query = "SELECT * from locations where locations.id=?";
 
         try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setLong(1, id);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                result = new Location(rs.getLong("id"),
-                        rs.getString("name"));
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result = new Location(rs.getLong("id"),
+                            rs.getString("name"));
+                }
             }
         } catch (SQLException e) {
             logger.error("Problem getting location", e);
@@ -37,15 +38,16 @@ public class LocationRepository {
     public Location locationByName(@NotNull String name) {
         logger.info("Get a specific location by name");
         Location result = null;
-        var query = "SELECT * from location where LOWER(location.name)=?";
+        var query = "SELECT * from locations where LOWER(locations.name)=?";
 
         try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, name.toLowerCase());
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                result = new Location(rs.getLong("id"),
-                        rs.getString("name"));
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    result = new Location(rs.getLong("id"),
+                            rs.getString("name"));
+                }
             }
         } catch (SQLException e) {
             logger.error("Problem getting location", e);

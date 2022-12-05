@@ -12,7 +12,7 @@ last_login TIMESTAMP
 
 CREATE TABLE campaigns (
 id serial PRIMARY KEY,
-campaign_name VARCHAR(200) NOT NULL,
+name VARCHAR(200) NOT NULL,
 official BOOLEAN NOT NULL
 );
 
@@ -74,7 +74,7 @@ id serial PRIMARY KEY,
 name VARCHAR (255) NOT NULL,
 campaign_id INT,
 location_id INT,
-suggested_apl INT,
+suggested_acl INT,
 created_by INT NOT NULL,
 FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
 FOREIGN KEY (location_id) REFERENCES locations(id),

@@ -14,11 +14,13 @@ public class RestAPI extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         return Set.of(
+                CampaignResource.class,
+                CampaignsResource.class,
+                CharacterResource.class,
                 EncountersResource.class,
                 EncounterResource.class,
-                CharacterResource.class,
-                CampaignResource.class,
-                HealthResource.class
+                HealthResource.class,
+                LocationResource.class
         );
     }
 }

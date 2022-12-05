@@ -4,51 +4,42 @@ VALUES
     ('DonDaDM', '', 'siderean@gmail.com', now(), now());
 
 
-CREATE TABLE accounts (
-                          id serial PRIMARY KEY,
-                          username VARCHAR (255) UNIQUE NOT NULL,
-                          password VARCHAR (255) NOT NULL,
-                          email VARCHAR (255) UNIQUE NOT NULL,
-                          created_on TIMESTAMP NOT NULL,
-                          last_login TIMESTAMP
-);
-INSERT INTO
-    creature_crs (id, label, challenge_rating)
+INSERT INTO creature_crs (label, challenge_rating)
 VALUES
-    (1, '0', 0),
-    (2, '1/8', 0.125),
-    (3, '1/4', 0.25),
-    (4, '1/2', 0.5),
-    (5, '1', 1),
-    (6, '2', 2),
-    (7, '3', 3),
-    (8, '4', 4),
-    (9, '5', 5),
-    (10, '6', 6),
-    (11, '7', 7),
-    (12, '8', 8),
-    (13, '9', 9),
-    (14, '10', 10),
-    (15, '11', 11),
-    (16, '12', 12),
-    (17, '13', 13),
-    (18, '14', 14),
-    (19, '15', 15),
-    (20, '16', 16),
-    (21, '17', 17),
-    (22, '18', 18),
-    (23, '19', 19),
-    (24, '20', 20),
-    (25, '21', 21),
-    (26, '22', 22),
-    (27, '23', 23),
-    (28, '24', 24),
-    (29, '25', 25),
-    (30, '26', 26),
-    (31, '27', 27),
-    (32, '28', 28),
-    (33, '29', 29),
-    (34, '30', 30);
+    ('0', 0),
+    ('1/8', 0.125),
+    ('1/4', 0.25),
+    ('1/2', 0.5),
+    ('1', 1),
+    ('2', 2),
+    ('3', 3),
+    ('4', 4),
+    ('5', 5),
+    ('6', 6),
+    ('7', 7),
+    ('8', 8),
+    ('9', 9),
+    ('10', 10),
+    ('11', 11),
+    ('12', 12),
+    ('13', 13),
+    ('14', 14),
+    ('15', 15),
+    ('16', 16),
+    ('17', 17),
+    ('18', 18),
+    ('19', 19),
+    ('20', 20),
+    ('21', 21),
+    ('22', 22),
+    ('23', 23),
+    ('24', 24),
+    ('25', 25),
+    ('26', 26),
+    ('27', 27),
+    ('28', 28),
+    ('29', 29),
+    ('30', 30);
 
 INSERT INTO environments (id, environment)
 VALUES (1, 'arctic'),
@@ -144,5 +135,5 @@ VALUES (1, 'aberration'),
 (15, 'plant'),
 (16, 'undead');
 
-INSERT INTO subtypes (id, subtype)
-VALUES (23, 'Goblinoid');
+## INSERT INTO subtypes (id, subtype)
+## VALUES (23, 'Goblinoid');
