@@ -22,7 +22,7 @@ public class EncounterResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addEncounter(Encounter encounter) {
         logger.debug("Adding encounter.");
-//        encounters.addEncounter(encounter);
+        encounters.createEncounter(encounter);
         return Response.status(Response.Status.CREATED).build();
     }
 

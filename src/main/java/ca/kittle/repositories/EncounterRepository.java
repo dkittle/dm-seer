@@ -14,6 +14,14 @@ public class EncounterRepository {
 
     private final Database db = new Database();
 
+    public void createEncounter(Encounter encounter) {
+        if (encounter.name() == null || encounter.name().isEmpty())
+            throw new IllegalArgumentException("Encounter name cannot be null.");
+        if (encounter.suggestedACL() < 1)
+            throw new IllegalArgumentException("Suggested Average Character Level must be 1 or greater..");
+
+        var record = "INSERT INTO encounters SET ";
+    }
     public List<Encounter> encounters(/** User user */) {
         logger.info("Get all encounters");
         var result = new ArrayList<Encounter>();
@@ -34,6 +42,39 @@ public class EncounterRepository {
         }
         logger.debug("Returning {} encounters", result.size());
         return result;
+    }
+
+    public void addCreature(long encounterId, long creatureId, int number) {
+        logger.info("Add a creature to an encounter");
+        var encounterCheck = "SELECT id from encounters where id=?";
+        var creatureCheck = "SELECT id from creatures where id=?";
+        var addCreatureToEncounter = "INSERT INTO encounter_creates SET encounterId=? AND creatureId=? AND creature_numbers=?";
+
+        try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(), db.username(), db.password())) {
+            try (PreparedStatement statement = connection.prepareStatement(encounterCheck)) {
+                statement.setLong(1, encounterId);
+                int i = statement.executeUpdate();
+                if (i == 0)
+                    throw new NotFoundException("Encounter id " + encounterId + " does not exist");
+            }
+            try (PreparedStatement statement = connection.prepareStatement(creatureCheck)) {
+                statement.setLong(1, creatureId);
+                int i = statement.executeUpdate();
+                if (i == 0)
+                    throw new NotFoundException("Creature id " + encounterId + " does not exist");
+            }
+            try (PreparedStatement statement = connection.prepareStatement(addCreatureToEncounter)) {
+                statement.setLong(1, encounterId);
+                statement.setLong(2, creatureId);
+                statement.setLong(3, number);
+                int i = statement.executeUpdate();
+                if (i == 0)
+                    throw new SQLException("Cannot add creatures to encounter");
+            }
+
+        } catch (SQLException e) {
+            logger.error("Problem adding to encounter", e);
+        }
     }
 
 }

@@ -9,7 +9,8 @@ Install Docker
 
 Install Postgres
 ```shell
-docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=some_password -d postgres:15-alpine 
+docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=some_password -d postgres:15-alpine
+docker start -a postgres 
 ```
 
 ## Set up Elastic Beanstalk environment
