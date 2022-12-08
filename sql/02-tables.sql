@@ -73,39 +73,139 @@ CREATE TABLE encounters (
 id serial PRIMARY KEY,
 name VARCHAR (255) NOT NULL,
 campaign_id INT,
+map_id INT,
 location_id INT,
+source_id INT,
 suggested_acl INT,
-created_by INT NOT NULL,
 FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
-FOREIGN KEY (location_id) REFERENCES locations(id),
-FOREIGN KEY (created_by) REFERENCES accounts(id)
+FOREIGN KEY (location_id) REFERENCES locations(id)
+);
+
+CREATE TABLE encounter_preparations (
+    encounter_id INT PRIMARY KEY,
+    dmg_difficulty INT NOT NULL,
+    sly_difficulty INT NOT NULL,
+    dragna_difficulty INT NOT NULL,
+    FOREIGN KEY (encounter_id) REFERENCES encounters (id)
 );
 
 CREATE TABLE leveled_characters (
-id INT PRIMARY KEY,
-label VARCHAR (50) UNIQUE NOT NULL,
-lvl INT NOT NULL
+    id INT PRIMARY KEY,
+    label VARCHAR (50) UNIQUE NOT NULL,
+    lvl INT NOT NULL
 );
 
 CREATE TABLE anticipated_characters (
-encounter_id INT NOT NULL,
-character_id INT NOT NULL,
-PRIMARY KEY (encounter_id, character_id),
-FOREIGN KEY (encounter_id) REFERENCES encounters (id),
-FOREIGN KEY (character_id) REFERENCES leveled_characters (id)
+    id SERIAL PRIMARY KEY,
+    encounter_id INT NOT NULL;
+    leveled_characters_id INT NOT NULL,
+    FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+    FOREIGN KEY (leveled_characters_id) REFERENCES leveled_characters (id)
 );
 
-CREATE TABLE encounter_creatures (
-encounter_id INT NOT NULL,
-creature_id INT NOT NULL,
-creature_numbers INT NOT NULL,
-PRIMARY KEY (encounter_id, creature_id),
-FOREIGN KEY (encounter_id) REFERENCES encounters (id),
-FOREIGN KEY (creature_id) REFERENCES creatures (id)
+CREATE TABLE combats (
+    id serial PRIMARY KEY,
+    encounter_id INT NOT NULL,
+    in_progress BOOLEAN NOT NULL,
+    round_number INT NOT NULL,
+    turn_number INT NOT NULL,
+
 );
 
+CREATE TABLE ddb_encounters (
+    ddbId UUID DEFAULT uuid_generate_v1(),
+    encounter_id INT NOT NULL,
+    PRIMARY KEY (ddbId)
+);
 
 CREATE TABLE sources (
 id serial PRIMARY KEY,
 title VARCHAR (50) UNIQUE NOT NULL
+);
+
+CREATE TABLE encounter_creatures (
+     encounter_id INT NOT NULL,
+     creature_id INT NOT NULL,
+     unique_id UUID DEFAULT uuid_generate_v1(),
+     creature_group_order INT,
+     PRIMARY KEY (encounter_id, creature_id),
+     FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+     FOREIGN KEY (creature_id) REFERENCES creatures (id)
+);
+
+CREATE TABLE combat_creatures (
+    unique_id UUID NOT NULL,
+    initiative INT NOT NULL,
+    current_hit_points INT NOT NULL,
+    temporary_hit_points INT NOT NULL,
+    maximum_hit_points INT NOT NULL
+);
+
+CREATE TABLE encounter_groups (
+     encounter_id INT NOT NULL,
+     creature_id INT NOT NULL,
+     group_id UUID DEFAULT uuid_generate_v1(),
+     group_order INT,
+     quantity INT NOT NULL,
+     PRIMARY KEY (encounter_id, creature_id),
+     FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+     FOREIGN KEY (creature_id) REFERENCES creatures (id)
+);
+
+CREATE TABLE user_encounters (
+    encounter_id INT NOT NULL,
+    account_id INT NOT NULL,
+    PRIMARY KEY (encounter_id, account_id),
+    FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+    FOREIGN KEY (account_id) REFERENCES accounts (id)
+)
+
+CREATE TABLE players (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE ddb_players (
+user_name VARCHAR(150) PRIMARY KEY,
+player_id INT NOT NULL,
+FOREIGN KEY (player_id) REFERENCES players (id)
+);
+
+CREATE TABLE characters (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    level INT NOT NULL,
+    hidden BOOLEAN NOT NULL DEFAULT false,
+    species VARCHAR(40) NOT NULL,
+    subspecies VARCHAR(60) NOT NULL,
+    gender VARCHAR(30) DEFAULT 'unknown',
+    avatar_url VARCHAR(500) NOT NULL,
+    initiative INT NOT NULL,
+    current_hit_points INT NOT NULL,
+    temporary_hit_points INT NOT NULL,
+    maximum_hit_points INT NOT NULL,
+    temp_maximum_hit_points INT NOT NULL
+);
+
+
+CREATE TABLE character_classes (
+    id SERIAL PRIMARY KEY,
+    character_id INT NOT NULL,
+    class VARCHAR(50) NOT NULL,
+    subclass VARCHAR(60) NOT NULL,
+    FOREIGN KEY (character_id) REFERENCES characters (id)
+);
+
+CREATE TABLE ddb_characters (
+ddbId VARCHAR(80) PRIMARY KEY,
+character_id INT NOT NULL,
+FOREIGN KEY (character_id) REFERENCES characters (id)
+);
+
+CREATE TABLE encounter_characters (
+encounter_id INT NOT NULL,
+character_id INT NOT NULL,
+PRIMARY KEY (encounter_id, character_id),
+FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+FOREIGN KEY (character_id) REFERENCES characters (id)
 );

@@ -21,14 +21,10 @@ public class CampaignResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response campaign(@PathParam("id") final long id) {
         logger.debug("Get campaign");
-        Campaign campaign = null;
-        try {
-            campaign = campaigns.campaign(id);
-        }
-        catch (NotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(campaign).build();
+        var campaign = campaigns.campaign(id);
+        if (campaign.isEmpty())
+            return Response.status(Response.Status.NOT_FOUND).entity("Campaign " + id + " not found.").build();
+        return Response.ok(campaign.get()).build();
     }
 
     @GET
@@ -36,14 +32,10 @@ public class CampaignResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response campaign(@QueryParam("name") final String name) {
         logger.debug("Get campaign by name");
-        Campaign campaign = null;
-        try {
-            campaign = campaigns.campaignByName(name);
-        }
-        catch (NotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(campaign).build();
+        var campaign = campaigns.campaignByName(name);
+        if (campaign.isEmpty())
+            return Response.status(Response.Status.NOT_FOUND).entity("Campaign '" + name + "' not found.").build();
+        return Response.ok(campaign.get()).build();
     }
 }
 

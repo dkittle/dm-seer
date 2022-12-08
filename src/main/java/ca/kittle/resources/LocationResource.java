@@ -21,14 +21,10 @@ public class LocationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response location(@PathParam("id") final long id) {
         logger.debug("Get location");
-        Location location = null;
-        try {
-            location = locations.location(id);
-        }
-        catch (NotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(location).build();
+        var location = locations.location(id);;
+        if (location.isEmpty())
+            return Response.status(Response.Status.NOT_FOUND).entity("Location " + id + " not found").build();
+        return Response.ok(location.get()).build();
     }
 
     @GET
@@ -36,14 +32,10 @@ public class LocationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response location(@QueryParam("name") final String name) {
         logger.debug("Get location by name");
-        Location location = null;
-        try {
-            location = locations.locationByName(name);
-        }
-        catch (NotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(location).build();
+        var location = locations.locationByName(name);
+        if (location.isEmpty())
+            return Response.status(Response.Status.NOT_FOUND).entity("Location '" + name + "' not found").build();
+        return Response.ok(location.get()).build();
     }
 }
 

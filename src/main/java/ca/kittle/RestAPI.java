@@ -17,6 +17,7 @@ public class RestAPI extends Application {
                 CampaignResource.class,
                 CampaignsResource.class,
                 CharacterResource.class,
+                CreatureResource.class,
                 EncountersResource.class,
                 EncounterResource.class,
                 HealthResource.class,

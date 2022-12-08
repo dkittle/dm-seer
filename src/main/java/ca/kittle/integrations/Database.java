@@ -16,6 +16,10 @@ public class Database {
 
     private final DbConfig dbConfig = getConfig();
 
+    public Connection connect() throws SQLException {
+        return DriverManager.getConnection(jdbcConnectString(), username(), password());
+    }
+
     public String jdbcConnectString() {
         return "jdbc:postgresql://" +
                 dbConfig.host +

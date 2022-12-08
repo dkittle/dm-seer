@@ -1,4 +1,4 @@
 package ca.kittle.models.app;
 
-public record Creature(long id, String ancestory, String ancestoryId, float CR) {
+public record Creature(long id, String species, String speciesId, String crLabel, float CR) {
 }
