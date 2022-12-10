@@ -4,12 +4,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Spells (
+data class Spells(
 
-    @SerialName("race"       ) var race       : ArrayList<String> = arrayListOf(),
-    @SerialName("class"      ) var charClass      : ArrayList<ca.kittle.models.integrations.character.CharClass>  = arrayListOf(),
-    @SerialName("background" ) var background : String?           = null,
-    @SerialName("item"       ) var item       : ArrayList<String> = arrayListOf(),
-    @SerialName("feat"       ) var feat       : ArrayList<String> = arrayListOf()
+    @SerialName("race") var race: ArrayList<Spell>? = null,
+    @SerialName("class") var actions: ArrayList<Spell>? = null,
+    @SerialName("background") var background: List<Spell>? = null,
+    @SerialName("item") var item: ArrayList<Spell>? = null,
+    @SerialName("feat") var feat: ArrayList<Spell>? = null
 
 )

@@ -5,16 +5,16 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class AtHigherLevels (
+data class AtHigherLevels(
 
-  @SerialName("higherLevelDefinitions" ) var higherLevelDefinitions : ArrayList<String> = arrayListOf(),
-  @SerialName("additionalAttacks"      ) var additionalAttacks      : ArrayList<String> = arrayListOf(),
-  @SerialName("additionalTargets"      ) var additionalTargets      : ArrayList<String> = arrayListOf(),
-  @SerialName("areaOfEffect"           ) var areaOfEffect           : ArrayList<String> = arrayListOf(),
-  @SerialName("duration"               ) var duration               : ArrayList<String> = arrayListOf(),
-  @SerialName("creatures"              ) var creatures              : ArrayList<String> = arrayListOf(),
-  @SerialName("special"                ) var special                : ArrayList<String> = arrayListOf(),
-  @SerialName("points"                 ) var points                 : ArrayList<String> = arrayListOf(),
-  @SerialName("range"                  ) var range                  : ArrayList<String> = arrayListOf()
+    @SerialName("higherLevelDefinitions") var higherLevelDefinitions: List<String>? = null,
+    @SerialName("additionalAttacks") var additionalAttacks: List<String>? = null,
+    @SerialName("additionalTargets") var additionalTargets: List<String>? = null,
+    @SerialName("areaOfEffect") var areaOfEffect: List<String>? = null,
+    @SerialName("duration") var duration: List<String>? = null,
+    @SerialName("creatures") var creatures: List<String>? = null,
+    @SerialName("special") var special: List<String>? = null,
+    @SerialName("points") var points: List<String>? = null,
+    @SerialName("range") var range: List<String>? = null
 
 )

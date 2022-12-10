@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class OptionalClassFeatures (
+data class OptionalClassFeature (
 
   @SerialName("classFeatureId"                    ) var classFeatureId                    : Int?    = null,
   @SerialName("affectedClassFeatureId"            ) var affectedClassFeatureId            : String? = null,

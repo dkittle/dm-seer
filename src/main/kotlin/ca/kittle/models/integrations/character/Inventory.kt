@@ -18,7 +18,7 @@ data class Inventory (
     @SerialName("equippedEntityTypeId"   ) var equippedEntityTypeId   : Int?        = null,
     @SerialName("equippedEntityId"       ) var equippedEntityId       : Int?        = null,
     @SerialName("chargesUsed"            ) var chargesUsed            : Int?        = null,
-    @SerialName("limitedUse"             ) var limitedUse             : String?     = null,
+    @SerialName("limitedUse"             ) var limitedUse             : LimitedUse?     = null,
     @SerialName("containerEntityId"      ) var containerEntityId      : Int?        = null,
     @SerialName("containerEntityTypeId"  ) var containerEntityTypeId  : Int?        = null,
     @SerialName("containerDefinitionKey" ) var containerDefinitionKey : String?     = null,

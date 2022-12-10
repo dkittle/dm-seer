@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Activation (
+data class Activation(
 
-  @SerialName("activationTime" ) var activationTime : Int? = null,
-  @SerialName("activationType" ) var activationType : Int? = null
+    @SerialName("activationTime") var activationTime: Int? = null,
+    @SerialName("activationType") var activationType: String? = null
 
 )

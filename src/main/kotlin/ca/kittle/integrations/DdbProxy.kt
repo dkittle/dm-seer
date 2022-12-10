@@ -114,6 +114,8 @@ class DdbProxy(private val cobaltSession: String?) {
         client.close()
         if (response.status != HttpStatusCode.OK)
             return null
+        val tmp: String = response.body()
+        logger.info { "Character: ${tmp}"}
         val result: DdbCharacterResponse = response.body()
         return result.data
     }

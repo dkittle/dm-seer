@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Background(
+data class Action(
 
     @SerialName("fixedValue") var fixedValue: String? = null,
     @SerialName("id") var id: String? = null,
@@ -12,7 +12,7 @@ data class Background(
     @SerialName("entityTypeId") var entityTypeId: Int? = null,
     @SerialName("type") var type: String? = null,
     @SerialName("subType") var subType: String? = null,
-    @SerialName("dice") var dice: String? = null,
+    @SerialName("dice") var dice: Dice? = null,
     @SerialName("restriction") var restriction: String? = null,
     @SerialName("statId") var statId: String? = null,
     @SerialName("requiresAttunement") var requiresAttunement: Boolean? = null,

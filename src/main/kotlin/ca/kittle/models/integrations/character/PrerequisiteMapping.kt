@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PrerequisiteMappings (
+data class PrerequisiteMapping (
 
   @SerialName("id"                  ) var id                  : Int?    = null,
   @SerialName("entityId"            ) var entityId            : Int?    = null,

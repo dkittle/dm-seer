@@ -4,9 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ChoiceDefinitions (
+data class ChoiceDefinitions(
 
-  @SerialName("id"      ) var id      : String?            = null,
-  @SerialName("options" ) var options : ArrayList<ca.kittle.models.integrations.character.Options> = arrayListOf()
+    @SerialName("id") var id: String? = null,
+    @SerialName("options") var options: ArrayList<Option>? = null
 
 )

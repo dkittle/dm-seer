@@ -8,6 +8,6 @@ data class ClassSpells (
 
   @SerialName("entityTypeId"     ) var entityTypeId     : Int?              = null,
   @SerialName("characterClassId" ) var characterClassId : Int?              = null,
-  @SerialName("spells"           ) var spells           : ArrayList<String> = arrayListOf()
+  @SerialName("spells"           ) var spells           : ArrayList<Spell> = arrayListOf()
 
 )

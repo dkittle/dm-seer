@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Sources (
+data class Source (
 
   @SerialName("sourceId"   ) var sourceId   : Int?    = null,
   @SerialName("pageNumber" ) var pageNumber : String? = null,

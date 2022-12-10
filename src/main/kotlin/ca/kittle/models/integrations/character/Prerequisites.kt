@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 data class Prerequisites (
 
   @SerialName("description"          ) var description          : String?                         = null,
-  @SerialName("prerequisiteMappings" ) var prerequisiteMappings : ArrayList<ca.kittle.models.integrations.character.PrerequisiteMappings> = arrayListOf()
+  @SerialName("prerequisiteMappings" ) var prerequisiteMappings : ArrayList<ca.kittle.models.integrations.character.PrerequisiteMapping> = arrayListOf()
 
 )
