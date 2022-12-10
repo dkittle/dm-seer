@@ -3,7 +3,6 @@ package ca.kittle.repositories;
 import ca.kittle.integrations.Database;
 import ca.kittle.models.app.Encounter;
 import ca.kittle.models.app.Location;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class LocationRepository {
         return Optional.empty();
     }
 
-    public Optional<Location> locationByName(@NotNull String name) {
+    public Optional<Location> locationByName(String name) {
         logger.info("Get a specific location by name");
         Location result = null;
         var query = "SELECT * from locations where LOWER(locations.name)=?";

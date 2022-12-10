@@ -5,9 +5,13 @@
 !.elasticbeanstalk/*.global.yml
 .ebextensions/*
 
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
 .idea/*
 
-target/*
+target/
 
 dm-seer.log
 temp.txt

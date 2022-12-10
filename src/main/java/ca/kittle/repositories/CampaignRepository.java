@@ -2,7 +2,6 @@ package ca.kittle.repositories;
 
 import ca.kittle.integrations.Database;
 import ca.kittle.models.app.Campaign;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,7 @@ public class CampaignRepository {
         return Optional.empty();
     }
 
-    public Optional<Campaign> campaignByName(@NotNull String name) {
+    public Optional<Campaign> campaignByName( String name) {
         logger.info("Get a specific campaign by name");
         var query = "SELECT * from campaigns where LOWER(campaigns.name)=?";
 
