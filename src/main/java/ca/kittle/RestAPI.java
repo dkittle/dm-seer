@@ -1,6 +1,5 @@
 package ca.kittle;
 
-import ca.kittle.resources.*;
 
 import java.util.Set;
 

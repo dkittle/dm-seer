@@ -1,3 +1,5 @@
 package ca.kittle.models
 
-data class SubClass()
+data class SubClass(
+    val name: String
+)

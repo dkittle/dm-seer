@@ -12,6 +12,7 @@ build/
 .idea/*
 
 target/
+samples/
 
 dm-seer.log
 temp.txt
