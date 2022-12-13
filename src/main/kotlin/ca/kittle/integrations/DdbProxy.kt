@@ -1,9 +1,6 @@
 package ca.kittle.integrations
 
-import ca.kittle.models.integrations.DdbAuthResponse
-import ca.kittle.models.integrations.DdbCampaign
-import ca.kittle.models.integrations.DdbCampaignResponse
-import ca.kittle.models.integrations.DdbCharacterResponse
+import ca.kittle.models.integrations.*
 import ca.kittle.models.integrations.character.DdbCharacter
 import ca.kittle.models.integrations.encounter.DdbEncounter
 import ca.kittle.models.integrations.encounter.DdbEncounters
@@ -32,6 +29,8 @@ class DdbProxy(private val cobaltSession: String?) {
 
     private val DDB_ENCOUNTER_SERVICE = "https://encounter-service.dndbeyond.com/v1/encounters"
     private val DDB_NEW_CHARACTER_SERVICE = "https://character-service-scds.dndbeyond.com/v2/characters"
+
+    private val DDB_LIST_CHARACTERS = "https://character-service.dndbeyond.com/character/v5/characters/list"
 
     private fun jsonClient(): HttpClient {
         return HttpClient(CIO) {
@@ -79,6 +78,25 @@ class DdbProxy(private val cobaltSession: String?) {
             return null
         val result: DdbCampaignResponse = response.body()
         return result.data
+    }
+
+    suspend fun userCharacters(id: Long): List<DdbCharacterHeadline>? {
+        authenticate()
+        logger.debug { "Getting list of user's ddb characters" }
+        val client = jsonClient()
+        val response = client.get("$DDB_LIST_CHARACTERS?userId=$id") {
+            headers {
+                append(HttpHeaders.UserAgent, USER_AGENT)
+                append(HttpHeaders.Accept, "application/json")
+                append(HttpHeaders.Authorization, "Bearer $cobaltToken")
+            }
+        }
+        logger.info { "Status ${response.status}" }
+        if (response.status != HttpStatusCode.OK)
+            return null
+        val result: DdbUserCharactersResponse = response.body()
+//        logger.debug { result }
+        return result.data.characters
     }
 
     suspend fun characters(ids: List<Long>): List<ca.kittle.models.integrations.tersecharacter.Character>? {
