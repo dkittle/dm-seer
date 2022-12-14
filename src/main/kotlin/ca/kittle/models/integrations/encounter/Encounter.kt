@@ -21,7 +21,7 @@ data class Encounter (
   @SerialName("monsters"       ) var monsters       : ArrayList<Monsters> = arrayListOf(),
   @SerialName("groups"         ) var groups         : ArrayList<Groups>   = arrayListOf(),
   @SerialName("players"        ) var players        : ArrayList<Players>  = arrayListOf(),
-  @SerialName("manualEntries"  ) var manualEntries  : ArrayList<String>   = arrayListOf(),
+  @SerialName("manualEntries"  ) var manualEntries  : ArrayList<ManualEntry>?   = null,
   @SerialName("difficulty"     ) var difficulty     : Int?                = null,
   @SerialName("dateCreated"    ) var dateCreated    : Long?                = null,
   @SerialName("dateModified"   ) var dateModified   : Long?                = null,

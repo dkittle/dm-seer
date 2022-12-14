@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.util.List
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -7,10 +11,12 @@ plugins {
     kotlin("jvm") version "1.7.22"
     id("io.ktor.plugin") version "2.2.0"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.7.22"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "ca.kittle"
 version = "0.0.1"
+
 application {
     mainClass.set("ca.kittle.ApplicationKt")
 
@@ -38,6 +44,15 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
 //    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation(kotlin("test"))
+}
+
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "17"
+}
+
+tasks.withType<ShadowJar> {
+    archiveFileName.set("app.jar")
 }
 
 tasks.test {

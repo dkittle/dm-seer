@@ -1,1 +1,1 @@
-web: java -jar dm-seer-0.2-SNAPSHOT-jar-with-dependencies.jar
+web: java -jar app.jar

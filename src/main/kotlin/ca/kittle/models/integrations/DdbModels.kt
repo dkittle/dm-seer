@@ -10,6 +10,7 @@ data class DdbCampaign(
     val name: String,
     val dmUsername: String,
     val dmId: Long,
+    val splashUrl: String = "",
     val dateCreated: String,
     val playerCount: Int
 )
