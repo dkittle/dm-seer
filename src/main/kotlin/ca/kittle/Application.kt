@@ -18,6 +18,7 @@ fun main() {
         try { port = env.toInt()
         } catch (ignored: NumberFormatException) { }
     }
+    logger.info { "Binding to port $port"}
     DiscordListener.startDiscordListener()
     embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)

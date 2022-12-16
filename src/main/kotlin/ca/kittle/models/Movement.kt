@@ -1,4 +1,4 @@
-package ca.kittle.models.integrations.character
+package ca.kittle.models
 
 import kotlinx.serialization.Serializable
 
@@ -8,3 +8,12 @@ data class Movement(
     var speed: Int?,
     var notes: String?
 )
+
+
+enum class Movements(val id: Int) {
+    WALK(1),
+    BURROW(2),
+    CLIMB(3),
+    FLY(4),
+    SWIM(5)
+}

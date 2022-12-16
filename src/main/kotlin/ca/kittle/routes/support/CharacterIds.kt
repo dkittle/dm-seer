@@ -1,4 +1,4 @@
-package ca.kittle.models.integrations.tersecharacter
+package ca.kittle.routes.support
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

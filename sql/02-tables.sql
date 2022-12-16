@@ -4,21 +4,50 @@
 CREATE TABLE accounts (
 id serial PRIMARY KEY,
 username VARCHAR (255) UNIQUE NOT NULL,
-password VARCHAR (255) NOT NULL,
 email VARCHAR (255) UNIQUE NOT NULL,
 created_on TIMESTAMP NOT NULL,
 last_login TIMESTAMP
 );
 
+CREATE TABLE identity_database (
+    account_id INT PRIMARY KEY,
+    password VARCHAR (255) NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts (id)
+)
+
+CREATE TABLE vtt_accounts (
+    id serial PRIMARY KEY,
+    vtt_name VARCHAR(100) NOT NULL,
+    vtt_id BIGINT,
+    vtt_key VARCHAR(200),
+    account_id INT NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts (id)
+);
+
 CREATE TABLE campaigns (
 id serial PRIMARY KEY,
 name VARCHAR(200) NOT NULL,
-official BOOLEAN NOT NULL
+dm_id INT NOT NULL,
+splashUrl TEXT,
+description TEXT,
+public_notes TEXT,
+private_notes TEXT,
+official BOOLEAN NOT NULL,
+FOREIGN KEY (account_id) REFERENCES accounts (id)
 );
 
 CREATE TABLE locations (
 id serial PRIMARY KEY,
-name VARCHAR(100) NOT NULL
+name VARCHAR(100) NOT NULL,
+campaign_id INT NOT NULL,
+FOREIGN KEY (campaign_id) REFERENCES campaigns (id)
+);
+
+CREATE TABLE rooms (
+id serial PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+location_id INT NOT NULL,
+FOREIGN KEY (location_id) REFERENCES locations (id)
 );
 
 CREATE TABLE creature_crs (
@@ -72,21 +101,30 @@ FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id)
 CREATE TABLE encounters (
 id serial PRIMARY KEY,
 name VARCHAR (255) NOT NULL,
-campaign_id INT,
-map_id INT,
-location_id INT,
+dm_id INT,
+room_id INT,
 source_id INT,
 suggested_acl INT,
-FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
-FOREIGN KEY (location_id) REFERENCES locations(id)
+FOREIGN KEY (dm_id) REFERENCES accounts(id),
+FOREIGN KEY (room_id) REFERENCES rooms(id),
+FOREIGN KEY (source_id) REFERENCES sources(id),
 );
 
-CREATE TABLE encounter_preparations (
-    encounter_id INT PRIMARY KEY,
-    dmg_difficulty INT NOT NULL,
-    sly_difficulty INT NOT NULL,
-    dragna_difficulty INT NOT NULL,
-    FOREIGN KEY (encounter_id) REFERENCES encounters (id)
+CREATE TABLE encounter_tables (
+id SERIAL INT PRIMARY KEY,
+name VARCHAR(200) NOT NULL,
+room_id INT,
+FOREIGN KEY (room_id) REFERENCES rooms(id),
+FOREIGN KEY (encounter_id) REFERENCES encounters (id)
+);
+
+CREATE TABLE encounter_table_entries (
+ encounter_id INT NOT NULL,
+ table_id INT NOT NULL,
+ weight INT, NOT NULL
+ PRIMARY KEY (encounter_id, table_id),
+ FOREIGN KEY (encounter_id) REFERENCES encounters (id),
+ FOREIGN KEY (table_id) REFERENCES encounter_tables (id)
 );
 
 CREATE TABLE leveled_characters (
@@ -120,7 +158,7 @@ CREATE TABLE ddb_encounters (
 
 CREATE TABLE sources (
 id serial PRIMARY KEY,
-title VARCHAR (50) UNIQUE NOT NULL
+title VARCHAR (70) UNIQUE NOT NULL,
 );
 
 CREATE TABLE encounter_creatures (
@@ -146,7 +184,7 @@ CREATE TABLE encounter_groups (
      creature_id INT NOT NULL,
      group_id UUID DEFAULT uuid_generate_v1(),
      group_order INT,
-     quantity INT NOT NULL,
+     quantity VARCHAR(40) NOT NULL,
      PRIMARY KEY (encounter_id, creature_id),
      FOREIGN KEY (encounter_id) REFERENCES encounters (id),
      FOREIGN KEY (creature_id) REFERENCES creatures (id)

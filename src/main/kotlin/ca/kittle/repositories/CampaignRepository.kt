@@ -1,22 +1,28 @@
-package ca.kittle.repositories;
+package ca.kittle.repositories
 
-import ca.kittle.integrations.Database;
-import ca.kittle.models.app.Campaign;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ca.kittle.integrations.Database
+import ca.kittle.models.app.Campaign
+import mu.KotlinLogging
+import java.util.*
 
-import java.sql.*;
-import java.util.Optional;
+class CampaignRepository {
+    private val logger = KotlinLogging.logger {}
+    private val db = Database()
 
-public class CampaignRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(CampaignRepository.class);
-    private final Database db = new Database();
-
-    public Optional<Campaign> campaign(long id) {
-        logger.info("Get a specific campaign");
-        Campaign result = null;
-        var query = "SELECT * from campaigns where campaigns.id=?";
+//    fun campaign(id: Long): Campaign? {
+//        logger.info { "Get a specific campaign" }
+//        val query = "SELECT * from campaigns where campaigns.id=?"
+//
+//        db.connect().use { conn ->
+//            conn.prepareStatement(query).use { stmt ->
+//                stmt.setString(1, id)
+//                stmt.executeQuery().use { rs ->
+//                    while(rs.next())
+//                        return rs.getInt("total") == 0
+//                }
+//            }
+//        }
 
 //        try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
 //             PreparedStatement statement = connection.prepareStatement(query)) {
@@ -29,12 +35,12 @@ public class CampaignRepository {
 //        } catch (SQLException e) {
 //            logger.error("Problem getting campaign", e);
 //        }
-        return Optional.empty();
-    }
+//        return Optional.empty()
+//    }
 
-    public Optional<Campaign> campaignByName( String name) {
-        logger.info("Get a specific campaign by name");
-        var query = "SELECT * from campaigns where LOWER(campaigns.name)=?";
+//    fun campaignByName(name: String?): Optional<Campaign?>? {
+//        CampaignRepository.logger.info("Get a specific campaign by name")
+//        val query = "SELECT * from campaigns where LOWER(campaigns.name)=?"
 
 //        try (Connection connection = DriverManager.getConnection(db.jdbcConnectString(),db.username(),db.password());
 //             PreparedStatement statement = connection.prepareStatement(query)) {
@@ -47,7 +53,7 @@ public class CampaignRepository {
 //        } catch (SQLException e) {
 //            logger.error("Problem getting campaign", e);
 //        }
-        return Optional.empty();
-    }
+//        return Optional.empty()
+//    }
 
 }

@@ -9,6 +9,7 @@ fun Application.configureRouting() {
 
     routing {
         coreRouting()
+        accountRouting()
         campaignRouting()
         characterRouting()
         encounterRouting()

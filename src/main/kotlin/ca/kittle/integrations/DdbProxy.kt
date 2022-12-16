@@ -5,7 +5,7 @@ import ca.kittle.models.integrations.character.DdbCharacter
 import ca.kittle.models.integrations.encounter.DdbEncounter
 import ca.kittle.models.integrations.encounter.DdbEncounters
 import ca.kittle.models.integrations.encounter.Encounter
-import ca.kittle.models.integrations.tersecharacter.CharacterIds
+import ca.kittle.routes.support.CharacterIds
 import ca.kittle.models.integrations.tersecharacter.DdbTerseCharacterResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -14,7 +14,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.selects.select
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 
@@ -33,6 +33,7 @@ class DdbProxy(private val cobaltSession: String?) {
 
     private val DDB_LIST_CHARACTERS = "https://character-service.dndbeyond.com/character/v5/characters/list"
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun jsonClient(): HttpClient {
         return HttpClient(CIO) {
             install(ContentNegotiation) {
@@ -40,7 +41,7 @@ class DdbProxy(private val cobaltSession: String?) {
                     prettyPrint = false
                     isLenient = true
                     ignoreUnknownKeys = true
-//                    explicitNulls = false
+                    explicitNulls = false
                 })
             }
         }
@@ -197,8 +198,6 @@ class DdbProxy(private val cobaltSession: String?) {
         client.close()
         if (response.status != HttpStatusCode.OK)
             return null
-        val tmp: String = response.body()
-        logger.info { "Character: ${tmp}"}
         val result: DdbCharacterResponse = response.body()
         return result.data
     }
@@ -210,7 +209,7 @@ class DdbProxy(private val cobaltSession: String?) {
         var offset = 0
         var numberEncounters = 0
         val client = jsonClient()
-        while (offset == 0 || offset < numberEncounters) {
+        while (offset == 0 || offset < 10) {
 //        while (offset == 0 || offset < numberEncounters) {
             val url = if (offset > 0) "$DDB_ENCOUNTER_SERVICE?skip=$offset&take=10" else DDB_ENCOUNTER_SERVICE
             val response = client.get(url) {

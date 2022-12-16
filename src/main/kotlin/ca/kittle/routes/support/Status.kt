@@ -1,4 +1,4 @@
-package ca.kittle.models
+package ca.kittle.routes.support
 
 import kotlinx.serialization.Serializable
 

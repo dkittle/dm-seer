@@ -1,8 +1,11 @@
 package ca.kittle.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Health(
-    val hitPoints: Int,
-    val maximumHitPoints: Int,
-    val temporaryHitPoints: Int,
-    val temporaryMaximum: Int
+    var hitPoints: Int = 0,
+    var maximumHitPoints: Int = 0,
+    var temporaryHitPoints: Int = 0,
+    var temporaryMaximum: Int = 0
 )

@@ -19,7 +19,7 @@ docker start -a postgres
 
 `sudo yum install postgresql-devel.x86_64`
 
-Edit Load Balancer config to set monitoring process endpoint to `/health`
+Edit Load Balancer config to set monitoring process endpoint to `/api/health`
 
 
 ## Manual curls

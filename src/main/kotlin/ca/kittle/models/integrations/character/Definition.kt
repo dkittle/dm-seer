@@ -11,7 +11,7 @@ data class Definition (
   @SerialName("name"             ) var name             : String?           ,
   @SerialName("description"      ) var description      : String?           ,
   @SerialName("snippet"          ) var snippet          : String?           ,
-  @SerialName("activation"       ) var activation       : Activation?           ,
+  @SerialName("activation"       ) var activation       : Activation? = null           ,
   @SerialName("sourceId"         ) var sourceId         : Int?              ,
   @SerialName("sourcePageNumber" ) var sourcePageNumber : String?           ,
   @SerialName("creatureRules"    ) var creatureRules    : List<CreatureRule>? = null,

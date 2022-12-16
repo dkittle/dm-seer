@@ -3,6 +3,12 @@ INSERT INTO accounts (username, password, email, created_on, last_login)
 VALUES
     ('DonDaDM', '', 'siderean@gmail.com', now(), now());
 
+INSERT INTO identity_database (account_id, password)
+SELECT id, '' FROM accounts where username='DonDaDM';
+
+INSERT INTO vtt_accounts (vtt_name, vtt_id, vtt_key, account_id)
+SELECT 'ddb', 107326383, '', id FROM accounts where username='DonDaDM';
+
 
 INSERT INTO creature_crs (label, challenge_rating)
 VALUES
@@ -97,7 +103,7 @@ VALUES (1, 'strength'),
 
 INSERT INTO senses (id, label)
 VALUES (1, 'blindsight'),
-(2, 'Darkvision'),
+(2, 'darkvision'),
 (3, 'tremorsense'),
 (4, 'truesight');
 
