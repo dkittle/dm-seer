@@ -44,6 +44,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.postgresql:postgresql:42.5.1")
     implementation ("com.zaxxer:HikariCP:5.0.1")
+    implementation ("com.nfeld.jsonpathkt:jsonpathkt:2.0.1")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
 //    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation(kotlin("test"))

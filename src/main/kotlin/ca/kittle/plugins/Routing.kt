@@ -12,6 +12,8 @@ fun Application.configureRouting() {
         accountRouting()
         campaignRouting()
         characterRouting()
+        creatureRouting()
         encounterRouting()
+        itemRouting()
     }
 }

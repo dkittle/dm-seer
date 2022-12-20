@@ -17,18 +17,36 @@ data class Abilities (
                 }
             }
         }
+        fun getAbilityById(id: Int): AbilityId? {
+            for (ability in AbilityId.values()) {
+                if (ability.id == id)
+                    return ability
+            }
+            return null
+        }
+
     }
 }
 
 @Serializable
 data class Ability (
-    val id: Int,
-    val name: String,
+    val id: AbilityId,
     val value: Int,
-    var modifier: Int
+    var name: String = "",
+    var modifier: Int = 0
 ) {
     init {
         if (value >= 1 && value <= 30)
             modifier = Abilities.modifiers().get(value - 1)
+        name = id.name.lowercase()
     }
+}
+
+enum class AbilityId(val id: Int) {
+    STRENGTH(1),
+    DEXTERITY(2),
+    CONSTITUTION(3),
+    INTELLIGENCE(4),
+    WISDOM(5),
+    CHARISMA(6)
 }

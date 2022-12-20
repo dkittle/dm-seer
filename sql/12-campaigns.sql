@@ -1,10 +1,10 @@
 
-INSERT INTO campaigns (name, dm_id, splashUrl, official)
+INSERT INTO campaigns (name, dm_id, splashUrl, description, public_notes, private_notes, official)
 SELECT 'Lost Mine of Phandelver',
-        id
+        ac.id,
         'https://www.dndbeyond.com/attachments/2/730/lmopcover.jpg',
         '', '', '', true
-FROM accounts where username='DonDaDM';
+FROM accounts ac where username='DonDaDM';
 
 
 INSERT INTO locations (name, campaign_id)

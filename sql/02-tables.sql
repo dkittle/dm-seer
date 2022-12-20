@@ -1,6 +1,3 @@
-
-
-
 CREATE TABLE accounts (
 id serial PRIMARY KEY,
 username VARCHAR (255) UNIQUE NOT NULL,
@@ -13,7 +10,7 @@ CREATE TABLE identity_database (
     account_id INT PRIMARY KEY,
     password VARCHAR (255) NOT NULL,
     FOREIGN KEY (account_id) REFERENCES accounts (id)
-)
+);
 
 CREATE TABLE vtt_accounts (
     id serial PRIMARY KEY,
@@ -33,7 +30,7 @@ description TEXT,
 public_notes TEXT,
 private_notes TEXT,
 official BOOLEAN NOT NULL,
-FOREIGN KEY (account_id) REFERENCES accounts (id)
+FOREIGN KEY (dm_id) REFERENCES accounts (id)
 );
 
 CREATE TABLE locations (
@@ -91,11 +88,40 @@ id INT PRIMARY KEY,
 type VARCHAR(30) NOT NULL
 );
 
+
+CREATE TABLE sources (
+ id serial PRIMARY KEY,
+ title VARCHAR (70) UNIQUE NOT NULL
+);
+
+
 CREATE TABLE creatures (
-id serial PRIMARY KEY,
-name VARCHAR(100) NOT NULL,
+id SERIAL PRIMARY KEY,
+species VARCHAR(100) NOT NULL,
+subSpecies VARCHAR(100),
+size_id INT NOT NULL,
+alignment_id INT NOT NULL,
+strength INT NOT NULL,
+dexterity INT NOT NULL,
+constitution INT NOT NULL,
+intelligence INT NOT NULL,
+wisdom INT NOT NULL,
+charisma INT NOT NULL,
+hitPoints INT NOT NULL,
+hitDiceString VARCHAR(50) NOT NULL,
 challenge_rating_id INT NOT NULL,
+armorClass INT NOT NULL,
+armor VARCHAR(100) NOT NULL,
+FOREIGN KEY (size_id) REFERENCES sizes (id),
 FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id)
+);
+
+CREATE TABLE creature_speeds (
+ creature_id INT PRIMARY KEY,
+ movement_id INT NOT NULL,
+ speed INT NOT NULL,
+ FOREIGN KEY (creature_id) REFERENCES creatures (id),
+ FOREIGN KEY (movement_id) REFERENCES movements (id)
 );
 
 CREATE TABLE encounters (
@@ -107,21 +133,20 @@ source_id INT,
 suggested_acl INT,
 FOREIGN KEY (dm_id) REFERENCES accounts(id),
 FOREIGN KEY (room_id) REFERENCES rooms(id),
-FOREIGN KEY (source_id) REFERENCES sources(id),
+FOREIGN KEY (source_id) REFERENCES sources(id)
 );
 
 CREATE TABLE encounter_tables (
-id SERIAL INT PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 name VARCHAR(200) NOT NULL,
 room_id INT,
-FOREIGN KEY (room_id) REFERENCES rooms(id),
-FOREIGN KEY (encounter_id) REFERENCES encounters (id)
+FOREIGN KEY (room_id) REFERENCES rooms(id)
 );
 
 CREATE TABLE encounter_table_entries (
  encounter_id INT NOT NULL,
  table_id INT NOT NULL,
- weight INT, NOT NULL
+ weight INT NOT NULL,
  PRIMARY KEY (encounter_id, table_id),
  FOREIGN KEY (encounter_id) REFERENCES encounters (id),
  FOREIGN KEY (table_id) REFERENCES encounter_tables (id)
@@ -135,7 +160,7 @@ CREATE TABLE leveled_characters (
 
 CREATE TABLE anticipated_characters (
     id SERIAL PRIMARY KEY,
-    encounter_id INT NOT NULL;
+    encounter_id INT NOT NULL,
     leveled_characters_id INT NOT NULL,
     FOREIGN KEY (encounter_id) REFERENCES encounters (id),
     FOREIGN KEY (leveled_characters_id) REFERENCES leveled_characters (id)
@@ -146,19 +171,13 @@ CREATE TABLE combats (
     encounter_id INT NOT NULL,
     in_progress BOOLEAN NOT NULL,
     round_number INT NOT NULL,
-    turn_number INT NOT NULL,
-
+    turn_number INT NOT NULL
 );
 
 CREATE TABLE ddb_encounters (
     ddbId UUID DEFAULT uuid_generate_v1(),
     encounter_id INT NOT NULL,
     PRIMARY KEY (ddbId)
-);
-
-CREATE TABLE sources (
-id serial PRIMARY KEY,
-title VARCHAR (70) UNIQUE NOT NULL,
 );
 
 CREATE TABLE encounter_creatures (
@@ -196,7 +215,7 @@ CREATE TABLE user_encounters (
     PRIMARY KEY (encounter_id, account_id),
     FOREIGN KEY (encounter_id) REFERENCES encounters (id),
     FOREIGN KEY (account_id) REFERENCES accounts (id)
-)
+);
 
 CREATE TABLE players (
     id SERIAL PRIMARY KEY,
@@ -225,6 +244,11 @@ CREATE TABLE characters (
     temp_maximum_hit_points INT NOT NULL
 );
 
+CREATE TABLE named_npc (
+    id SERIAL PRIMARY KEY,
+    creature_id INT NOT NULL,
+    FOREIGN KEY (creature_id) REFERENCES creatures (id)
+);
 
 CREATE TABLE character_classes (
     id SERIAL PRIMARY KEY,
@@ -232,6 +256,11 @@ CREATE TABLE character_classes (
     class VARCHAR(50) NOT NULL,
     subclass VARCHAR(60) NOT NULL,
     FOREIGN KEY (character_id) REFERENCES characters (id)
+);
+
+CREATE TABLE skills (
+id SERIAL PRIMARY KEY,
+label VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE ddb_characters (

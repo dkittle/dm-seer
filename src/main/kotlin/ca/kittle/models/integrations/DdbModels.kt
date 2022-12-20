@@ -44,6 +44,8 @@ data class DdbUserCharactersResponse (
     val data: DdbUserCharactersSettings
 )
 
+
+
 @Serializable
 data class DdbUserCharactersSettings (
     val characters: List<DdbCharacterHeadline>

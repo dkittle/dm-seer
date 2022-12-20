@@ -1,6 +1,6 @@
 package ca.kittle
 
-import ca.kittle.models.OK
+
 import ca.kittle.plugins.configureRouting
 import io.ktor.client.*
 import io.ktor.client.call.*

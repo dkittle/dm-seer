@@ -1,4 +1,4 @@
-package ca.kittle.models.integrations.encounter
+package ca.kittle.models.integrations
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

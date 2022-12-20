@@ -1,7 +1,6 @@
-
-INSERT INTO accounts (username, password, email, created_on, last_login)
+INSERT INTO accounts (username, email, created_on, last_login)
 VALUES
-    ('DonDaDM', '', 'siderean@gmail.com', now(), now());
+    ('DonDaDM', 'siderean@gmail.com', now(), now());
 
 INSERT INTO identity_database (account_id, password)
 SELECT id, '' FROM accounts where username='DonDaDM';
@@ -62,7 +61,8 @@ VALUES (1, 'arctic'),
 
 INSERT INTO languages (id, language)
 VALUES (1, 'Common'),
-(6, 'Goblin');
+(6, 'Goblin'),
+(11, 'Draconic');
 
 INSERT INTO leveled_characters (id, label, lvl)
 VALUES (1, 'Level 1 Character', 1),
@@ -116,7 +116,8 @@ VALUES (2, 'tiny'),
 (7, 'gargantuan');
 
 INSERT INTO skills (id, label)
-VALUES (5, 'Stealth');
+VALUES (5, 'Stealth'),
+(14, 'Perception');
 
 INSERT INTO sources (id, title)
 VALUES (1, 'Basic Rules'),

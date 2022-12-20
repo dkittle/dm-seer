@@ -1,6 +1,5 @@
 package ca.kittle.models.integrations.character
 
-import ca.kittle.models.Movement
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,7 +13,7 @@ data class Creature(
     var temporaryHitPoints: Int?,
     var groupId: Long?,
     var definition: CreatureDefinition?,
-    var movements: List<Movement>? = null,
+//    var movements: List<Movement>? = null,
     var passivePerception: Int?,
     var isHomebrew: Boolean?,
     var challengeRatingId: Long?,
