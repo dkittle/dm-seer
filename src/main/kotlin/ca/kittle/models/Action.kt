@@ -22,18 +22,26 @@ data class AttackAction (
     override var name: String = "",
     override var description: String = "",
     val toHit: Int,
-//    val attackType: AttackType,
+    val attackType: AttackType,
     val range: String,
     val target: String,
     val rolls: List<Roll>
 ) : BaseAction()
 
 @Serializable
-@SerialName("rollable")
+@SerialName("rollableAction")
 data class RollableAction (
     override var name: String = "",
     override var description: String = "",
     val rolls: List<Roll>
+) : BaseAction()
+
+@Serializable
+@SerialName("spellCastingAction")
+data class SpellCastingAction (
+    override var name: String = "",
+    override var description: String = "",
+    val spells: List<BaseCreatureSpells>
 ) : BaseAction()
 
 @Serializable

@@ -15,6 +15,8 @@ class Conditions {
                 11 -> Condition.POISON
                 12 -> Condition.PRONE
                 13 -> Condition.RESTRAINED
+                14 -> Condition.STUNNED
+                15 -> Condition.UNCONSCIOUS
                 else -> Condition.NONE
             }
         }
@@ -34,5 +36,7 @@ enum class Condition{
     POISON,
     PRONE,
     RESTRAINED,
+    STUNNED,
+    UNCONSCIOUS,
     NONE
 }

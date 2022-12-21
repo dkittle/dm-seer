@@ -1,4 +1,4 @@
-package ca.kittle.models.integrations.creature
+package ca.kittle.models
 
 import kotlinx.serialization.Serializable
 
@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class Swarm (
 
     val name : String,
-    val sizeId : Long,
-    val typeId : Long
+    val sizeId : Int,
+    val typeId : Int
 )

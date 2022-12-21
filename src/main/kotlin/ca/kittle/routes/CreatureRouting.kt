@@ -32,8 +32,8 @@ fun Route.creatureRouting() {
                 return@get call.respondText("No creature found with id $id", status = HttpStatusCode.NotFound)
             if (creature.stats.isEmpty())
                 return@get call.respondText("Invalid creature found with id $id", status = HttpStatusCode.BadRequest)
-//            call.respond(mapping.createCreature(creature))
-            call.respondText("ok")
+            call.respond(mapping.createCreature(creature))
+//            call.respond(creature)
         }
         get("/ddb/search/{term?}") {
             val term = call.parameters["term"] ?:

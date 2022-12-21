@@ -81,11 +81,14 @@ enum class AttackType(val id: Int, val label: String) {
 
 class DamageTypes {
     companion object {
-        fun getDamageTypeById(id: Int): DamageType? {
+        fun getDamageTypeById(id: Int): DamageType {
             return when (id) {
                 in 1.. DamageType.values().size -> DamageType.values()[id - 1]
-                else -> null
+                else -> DamageType.UNKNOWN
             }
+        }
+        fun getDamageTypeByName(input: String): DamageType {
+            return DamageType.values().filter { it.name.equals(input.uppercase()) }.getOrNull(0) ?: DamageType.UNKNOWN
         }
     }
 }
@@ -116,7 +119,8 @@ enum class DamageType(val id: Int, val label: String) {
     RANGED(41, "Ranged attacks"),
     WEAPONS(42, "Weapons"),
     SPELLS(43, "Spells"),
-    ALL(99, "All")
+    ALL(98, "All"),
+    UNKNOWN(99, "Unknown")
 }
 
 class CreatureSubTypes {
@@ -285,10 +289,7 @@ enum class CreatureGroupCategory(val id: Int, val label: String) {
 class CreatureTypes {
     companion object {
         fun getCreatureTypeById(id: Int): CreatureType? {
-            return when (id) {
-                in 1.. CreatureType.values().size -> CreatureType.values()[id - 1]
-                else -> null
-            }
+            return CreatureType.values().filter { it.id == id }.getOrNull(0)
         }
     }
 }
@@ -388,11 +389,8 @@ enum class GearType(val id: Int, val label: String) {
 
 class Languages {
     companion object {
-        fun getLanguageById(id: Int): Language? {
-            return when (id) {
-                in 1.. Language.values().size -> Language.values()[id - 1]
-                else -> null
-            }
+        fun getLanguageById(id: Int): Language {
+            return Language.values().filter { it.id == id }.getOrNull(0) ?: Language.UNKNOWN
         }
     }
 }
@@ -493,7 +491,8 @@ enum class Language(val id: Int, val label: String) {
     NERAKESE(96, "Nerakese"),
     NORDMAARIAN(97, "Nordmaarian"),
     OGRE(98, "Ogre"),
-    SOLAMNIC(99, "Solamnic")
+    SOLAMNIC(99, "Solamnic"),
+    UNKNOWN(0, "Unknown")
 }
 
 class WeaponCategories {
@@ -981,10 +980,7 @@ enum class DamageAdjustment(val id: Int, val label: String, val type: DamageAdju
 class Alignments {
     companion object {
         fun getAlignmentById(id: Int): Alignment? {
-            return when (id) {
-                in 1.. Alignment.values().size -> Alignment.values()[id - 1]
-                else -> null
-            }
+            return Alignment.values().filter { it.id == id}.getOrNull(0)
         }
     }
 }
@@ -1020,10 +1016,10 @@ enum class Alignment(val id: Int, val label: String, val description: String?, v
 
 class Sources {
     companion object {
-        fun getSourceById(id: Int): Source? {
+        fun getSourceById(id: Int): Source {
             return when (id) {
                 in 1.. Source.values().size -> Source.values()[id - 1]
-                else -> null
+                else -> Source.UNKNOWN
             }
         }
     }
@@ -1103,7 +1099,8 @@ enum class Source(val id: Int, val label: String, val description: String, val s
     DOSI(94, "DoSI", "Dragons of Stormwreck Isle", 1, true, "https://www.dndbeyond.com/avatars/26865/226/637921086362458107.jpeg", "sources/dosi"),
     SOTDQ(95, "SotDQ", "Dragonlance: Shadow of the Dragon Queen", 14, true, "https://www.dndbeyond.com/avatars/27777/666/637951679601337771.jpeg", "sources/sotdq"),
     ONEDND(100, "One-DnD", "One D&amp;D Playtest", 3, true, "https://www.dndbeyond.com/avatars/28133/674/637963577590732420.jpeg", "sources/one-dnd"),
-    MCV2(101, "MCv2", "Monstrous Compendium Volume Two: Dragonlance Creatures", 14, true, "https://www.dndbeyond.com/avatars/30591/814/638054153540284547.jpeg", "sources/mcv2")
+    MCV2(101, "MCv2", "Monstrous Compendium Volume Two: Dragonlance Creatures", 14, true, "https://www.dndbeyond.com/avatars/30591/814/638054153540284547.jpeg", "sources/mcv2"),
+    UNKNOWN(0, "Unknown", "", 1, false, "", "")
 }
 
 class Stats {
@@ -1128,11 +1125,8 @@ enum class Stat(val id: Int, val label: String, val entityTypeId: Int, val key: 
 
 class Skills {
     companion object {
-        fun getSkillById(id: Int): Skill? {
-            return when (id) {
-                in 1.. Skill.values().size -> Skill.values()[id - 1]
-                else -> null
-            }
+        fun getSkillById(id: Int): Skill {
+            return Skill.values().filter { it.id == id }.getOrNull(0) ?: Skill.UNKNOWN
         }
     }
 }
@@ -1155,7 +1149,8 @@ enum class Skill(val id: Int, val label: String, val entityTypeId: Int, val stat
     DECEPTION(16, "Deception", 1958004211, 6, "Your Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions. This deception can encompass everything from misleading others through ambiguity to telling outright lies. Typical situations include trying to fast-talk a guard, con a merchant, earn money through gambling, pass yourself off in a disguise, dull someone's suspicions with false assurances, or maintain a straight face while telling a blatant lie."),
     INTIMIDATION(17, "Intimidation", 1958004211, 6, "When you attempt to influence someone through overt threats, hostile actions, and physical violence, the GM might ask you to make a Charisma (Intimidation) check. Examples include trying to pry information out of a prisoner, convincing street thugs to back down from a confrontation, or using the edge of a broken bottle to convince a sneering vizier to reconsider a decision."),
     PERFORMANCE(18, "Performance", 1958004211, 6, "Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment."),
-    PERSUASION(19, "Persuasion", 1958004211, 6, "When you attempt to influence someone or a group of people with tact, social graces, or good nature, the GM might ask you to make a Charisma (Persuasion) check. Typically, you use persuasion when acting in good faith, to foster friendships, make cordial requests, or exhibit proper etiquette. Examples of persuading others include convincing a chamberlain to let your party see the king, negotiating peace between warring tribes, or inspiring a crowd of townsfolk.")
+    PERSUASION(19, "Persuasion", 1958004211, 6, "When you attempt to influence someone or a group of people with tact, social graces, or good nature, the GM might ask you to make a Charisma (Persuasion) check. Typically, you use persuasion when acting in good faith, to foster friendships, make cordial requests, or exhibit proper etiquette. Examples of persuading others include convincing a chamberlain to let your party see the king, negotiating peace between warring tribes, or inspiring a crowd of townsfolk."),
+    UNKNOWN(99, "Unknown", 0, 0, "")
 }
 
 class Senses {
@@ -1180,10 +1175,7 @@ enum class Sense(val id: Int, val label: String, val entityTypeId: Int) {
 class Sizes {
     companion object {
         fun getSizeById(id: Int): Size? {
-            return when (id) {
-                in 1.. Size.values().size -> Size.values()[id - 1]
-                else -> null
-            }
+            return Size.values().filter { it.id == id }.getOrNull(0)
         }
     }
 }

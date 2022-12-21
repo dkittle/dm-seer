@@ -9,8 +9,8 @@ import java.util.regex.Pattern
 data class Dice(
     var diceCount: Int,
     var diceValue: Int,
-    var diceMultiplier: Int,
-    var fixedValue: Int,
+    var diceMultiplier: Int?,
+    var fixedValue: Int?,
     var diceString: String = ""
 ) {
     companion object {

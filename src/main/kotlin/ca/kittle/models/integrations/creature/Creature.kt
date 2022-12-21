@@ -1,5 +1,6 @@
 package ca.kittle.models.integrations.creature
 
+import ca.kittle.models.Swarm
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,12 +34,12 @@ data class Creature (
 	val isHomebrew : Boolean,
 	val challengeRatingId : Int,
 	val sourceId : Int,
-	val sourcePageNumber : Int,
+	val sourcePageNumber : Int = 0,
 	val isLegendary : Boolean,
 	val isMythic : Boolean,
 	val hasLair : Boolean,
 	val avatarUrl : String,
-	val largeAvatarUrl : String,
+	val largeAvatarUrl : String?,
 	val basicAvatarUrl : String?,
 	val version : String?,
 	val subTypes : List<Int>,

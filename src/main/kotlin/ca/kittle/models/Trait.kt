@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class BasicTrait {
+sealed class BaseTrait {
     abstract var name: String
     abstract var description: String
 }
@@ -14,15 +14,21 @@ sealed class BasicTrait {
 data class Trait (
     override var name: String = "",
     override var description: String = ""
-) : BasicTrait()
+) : BaseTrait()
 
 @Serializable
-@SerialName("spell-casting")
+@SerialName("rollableTrait")
+data class RollableTrait (
+    override var name: String = "",
+    override var description: String = "",
+    val rolls: List<Roll>
+) : BaseTrait()
+
+@Serializable
+@SerialName("spellCastingTrait")
 data class SpellCastingTrait (
     override var name: String = "",
     override var description: String = "",
-    var atWill: List<String>,
-    var threeTimesPerDay: List<String>,
-    var oncePerDay: List<String>
-) : BasicTrait()
+    val spells: List<BaseCreatureSpells>
+) : BaseTrait()
 
