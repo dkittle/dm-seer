@@ -4,7 +4,10 @@ import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
 import ca.kittle.models.*
 import mu.KotlinLogging
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.lowerCase
+import org.jetbrains.exposed.sql.select
 import org.mindrot.jbcrypt.BCrypt
 
 class AccountRepository {
@@ -29,29 +32,50 @@ class AccountRepository {
         })
     }
 
-    private fun toAccount(a: AccountDO?): Account? {
-        if (a == null)
-            return null
-        return Account(a.username, a.password, a.email, a.active)
+    suspend fun getDDBAccount(accountId: Int): VttAccount? = dbQuery {
+        VttAccounts.select { (VttAccounts.account eq accountId) and (VttAccounts.vttName eq "DDB") }
+            .mapNotNull { toVttAccount(it) }
+            .singleOrNull()
     }
 
-//    val sequelId = Accounts.integer("sequel_id").uniqueIndex()
-//    val name = Accounts.varchar("name", 50)
-//    val director = Accounts.varchar("director", 50)
+//    suspend fun getUserByEmail(email: String): User? = dbQuery {
+//        Users.select {
+//            (Users.email eq email)
+//        }.mapNotNull { toUser(it) }
+//            .singleOrNull()
+//    }
+//
+//    private fun toUser(row: ResultRow): User =
+//        User(
+//            id = row[Users.id],
+//            email = row[Users.email],
+//            active = row[Users.active],
+//            password = row[Users.password]
+//        )
 
-//    fun isUsernameAvailable(username: String): Boolean {
-//        logger.debug { "Checking is username is available." }
-//        val query = "SELECT count(username) as total from accounts a WHERE LOWER(a.username)=?"
-//        db.connect().use { conn ->
-//            conn.prepareStatement(query).use { stmt ->
-//                stmt.setString(1, username)
-//                stmt.executeQuery().use { rs ->
-//                    while(rs.next())
-//                        return rs.getInt("total") == 0
-//                }
-//            }
-//        }
-//        return false
+    private fun toAccount(a: AccountDO?): Account? {
+        return if (a == null) null else Account(a.id.value, a.username, a.password, a.email, a.active)
+    }
+
+    private fun toVttAccount(row: ResultRow): VttAccount =
+        VttAccount(row[VttAccounts.id].value,
+            row[VttAccounts.account].value,
+            row[VttAccounts.vttName],
+            row[VttAccounts.vttId],
+            row[VttAccounts.vttKey]
+        )
+
+
+
+//    val email = URLDecoder.decode("email", "UTF-8")
+//    val phone = URLDecoder.decode("phone", "UTF-8")
+//
+//    Users.find {
+//        if (email != null) (Users.email eq email) else Op.TRUE
+//            .and(if (phone != null) (Users.phone eq phone) else Op.TRUE)
 //    }
 
+    companion object {
+        private val logger = KotlinLogging.logger {}
+    }
 }

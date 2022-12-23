@@ -4,6 +4,7 @@ import ca.kittle.models.AccountUsername
 import ca.kittle.models.Credentials
 import ca.kittle.services.IdentityAuth
 import ca.kittle.models.NewAccount
+import ca.kittle.models.UserSession
 import ca.kittle.repositories.AccountRepository
 import ca.kittle.routes.support.FALSE
 import ca.kittle.routes.support.TRUE
@@ -13,6 +14,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import org.mindrot.jbcrypt.BCrypt
 
 val accountRepository = AccountRepository()
@@ -25,6 +27,8 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
         if (account == null || !BCrypt.checkpw(credentials.password, account.password)) {
             return@post call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
         }
+        val ddb = accountRepository.getDDBAccount(account.id)
+        call.sessions.set(UserSession(account.username, ddb?.vttId, ddb?.vttKey))
         call.respond(mapOf("token" to identityAuth.signedToken(account.username)))
     }
 

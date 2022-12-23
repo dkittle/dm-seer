@@ -7,11 +7,7 @@ created_on TIMESTAMP NOT NULL,
 last_login TIMESTAMP
 );
 
-CREATE TABLE identity_database (
-    account_id INT PRIMARY KEY,
-    password VARCHAR (255) NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts (id)
-);
+
 
 CREATE TABLE vtt_accounts (
     id serial PRIMARY KEY,

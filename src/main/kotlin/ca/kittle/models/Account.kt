@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 
 @Serializable
 data class Account(
+    val id: Int,
     val username: String,
     val password: String,
     val email: String,
@@ -24,6 +25,9 @@ data class Credentials(val username: String, val password: String)
 @Serializable
 data class AccountUsername(val username: String)
 
+data class VttAccount(val id: Int, val accountId: Int, val vttName: String, val vttId: Int, val vttKey: String?)
+
+data class UserSession(val username: String, val vttId: Int?, val vttKey: String?)
 
 object Accounts : IntIdTable("accounts") {
     val username = text("username").uniqueIndex()
@@ -42,4 +46,19 @@ class AccountDO(id: EntityID<Int>): IntEntity(id) {
     var active by Accounts.active
     var createdOn by Accounts.createdOn
     var lastLogin by Accounts.lastLogin
+}
+
+object VttAccounts : IntIdTable("accounts") {
+    val vttName = text("vtt_name").uniqueIndex()
+    val vttId = integer("vtt_id")
+    val vttKey = text("vtt_key").nullable()
+    val account = reference("account_id", Accounts)
+}
+
+class VttAccountDO (id: EntityID<Int>): IntEntity(id) {
+    companion object : IntEntityClass<VttAccountDO>(VttAccounts)
+    var vttName by VttAccounts.vttName
+    var vttId by VttAccounts.vttId
+    var vttKey by VttAccounts.vttKey
+    var account by AccountDO referencedOn VttAccounts.account
 }

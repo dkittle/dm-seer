@@ -1,6 +1,7 @@
 package ca.kittle
 
 import ca.kittle.integrations.Database
+import ca.kittle.models.UserSession
 import ca.kittle.services.IdentityAuth
 import ca.kittle.plugins.configureAuthentication
 import ca.kittle.plugins.configureRouting
@@ -14,6 +15,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 import mu.KotlinLogging
 
@@ -49,6 +51,13 @@ fun Application.module(testing: Boolean = false) {
     configureSerialization()
     configureAuthentication(identityAuth)
     configureRouting(identityAuth)
+    install(Sessions) {
+        val secretEncryptKey = hex("0116283ba45866878cc9aa9b4c0d0eff")
+        val secretSignKey = hex("6319b67a626945a1908f48236b89")
+        header<UserSession>("user_session") {
+            transform(SessionTransportTransformerEncrypt(secretEncryptKey, secretSignKey))
+        }
+    }
 
     Database.init()
 
