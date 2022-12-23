@@ -1,5 +1,7 @@
 package ca.kittle.integrations
 
+import ca.kittle.integrations.mapping.DdbCreature
+import ca.kittle.integrations.spells.DdbItems
 import ca.kittle.integrations.spells.DdbSpells
 import ca.kittle.integrations.spells.Spell
 import ca.kittle.models.integrations.*
@@ -9,6 +11,7 @@ import ca.kittle.models.integrations.creature.DdbCreatures
 import ca.kittle.models.integrations.encounter.DdbEncounter
 import ca.kittle.models.integrations.encounter.DdbEncounters
 import ca.kittle.models.integrations.encounter.Encounter
+import ca.kittle.models.integrations.item.Item
 import ca.kittle.routes.support.CharacterIds
 import ca.kittle.models.integrations.tersecharacter.DdbTerseCharacterResponse
 import com.nfeld.jsonpathkt.JsonPath
@@ -17,11 +20,17 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 
@@ -191,7 +200,7 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.data
     }
 
-    suspend fun items(): String? {
+    suspend fun items(): List<Item>? {
         authenticate()
         val campaignId = getDmCampaignId()
         logger.debug { "Getting items" }
@@ -206,8 +215,8 @@ class DdbProxy(private val cobaltSession: String?) {
         logger.info { "Status ${response.status}" }
         if (response.status != HttpStatusCode.OK)
             return null
-        val result: String = response.body()
-        return result
+        val result: DdbItems = response.body()
+        return result.items
     }
 
 
@@ -369,6 +378,78 @@ class DdbProxy(private val cobaltSession: String?) {
         if (result.creatures.size != 1)
             logger.warn { "Got ${result.creatures.size} creatures back for a single id ($id)." }
         return result.creatures.get(0)
+    }
+
+    suspend fun cacheAvatars(creature: Creature) {
+        val url = DdbCreature.fixCreatureUrl(creature.avatarUrl)
+        val large = DdbCreature.fixCreatureUrl(creature.largeAvatarUrl ?: "")
+        val basic = DdbCreature.fixCreatureUrl(creature.basicAvatarUrl ?: "")
+        val name = creature.name
+        val folder = "./avatars/${name.take(1).lowercase()}"
+        if (Files.exists(Paths.get("$folder/$name-${Url(url).pathSegments.last()}"))) {
+            logger.debug { "File $folder/$name-${Url(url).pathSegments.last()} already downloaded."}
+            return
+        }
+        logger.debug { "Caching creature avatars for $name" }
+        if (url.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing avatar for $name in $folder/" }
+            val u = Url(url)
+            val file = File("$folder/$name-${u.pathSegments.last()}")
+            client.get(url).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing avatar from $url" }
+            client.close()
+        }
+        if (large.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing large avatar for $name in $folder/" }
+            val u = Url(large)
+            val file = File("$folder/$name-large-${u.pathSegments.last()}")
+            client.get(large).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing large avatar from $large" }
+            client.close()
+        }
+        if (basic.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing basic avatar for $name in $folder/" }
+            val u = Url(basic)
+            val file = File("$folder/$name-basic-${u.pathSegments.last()}")
+            client.get(basic).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing basic avatar from $basic" }
+            client.close()
+        }
+    }
+
+    suspend fun cacheItemAvatars(item: Item) {
+        val url = item.avatarUrl ?: ""
+        val large = item.largeAvatarUrl ?: ""
+        val name = item.name ?: "unknown"
+        if (url.isEmpty() && large.isEmpty())
+            return
+        val folder = "./items/${name.take(1).lowercase()}"
+        if (url.isNotBlank() && Files.exists(Paths.get("$folder/$name-${Url(url).pathSegments.last()}"))) {
+            logger.debug { "File $folder/$name-${Url(url).pathSegments.last()} already downloaded."}
+            return
+        }
+        logger.debug { "Caching item avatars for $name" }
+        if (url.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing avatar for $name in $folder/" }
+            val u = Url(url)
+            val file = File("$folder/$name-${u.pathSegments.last()}")
+            client.get(url).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing avatar from $url" }
+            client.close()
+        }
+        if (large.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing large avatar for $name in $folder/" }
+            val u = Url(large)
+            val file = File("$folder/$name-large-${u.pathSegments.last()}")
+            client.get(large).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing large avatar from $large" }
+            client.close()
+        }
     }
 
     private fun setSplashUrls(campaigns: List<DdbCampaign>): List<DdbCampaign> {

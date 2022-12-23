@@ -9,10 +9,13 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
-.idea/*
+.idea/
 
 target/
 samples/
+avatars/
+items/
+items copy/
 
 dm-seer.log
 temp.txt

@@ -17,19 +17,6 @@ fun Route.characterRouting() {
         call.respond(characters)
     }
 
-    get("/api/character/ddb/spells/{name}") {
-        val name = call.parameters["name"] ?:
-            return@get call.respondText("Missing caster class name", status = HttpStatusCode.BadRequest)
-        val spells = ddbProxy.spells(name) ?:
-            return@get call.respondText("No spells found for $name", status = HttpStatusCode.NotFound)
-        call.respond(spells)
-    }
-
-    get("/api/character/ddb/items") {
-        val items = ddbProxy.items() ?:
-        return@get call.respondText("No character options found", status = HttpStatusCode.NotFound)
-        call.respond(items)
-    }
 
     get("/api/characters/{id?}") {
         val id = call.parameters["id"] ?:

@@ -1271,3 +1271,25 @@ enum class ProficiencyGroup(val label: String, val customProficiencyGroup: Int, 
     LANUAGE("Languages", 3, listOf(35), listOf(906033267))
 }
 
+enum class ModifierType(val id: Int, val label: String) {
+    SET(9, "Set"),
+    RESISTANCE(5, "Resistance"),
+    IMMUNITY(6, "Immunity")
+}
+
+enum class ModifierSubType(val id: Int, val label: String) {
+    NONMAGICAL(215, "Non-magical weapons")
+}
+
+enum class ItemType(val id: Int, val label: String) {
+    ARMOR(701257905, "Armor"),
+    WONDEROUSITEM(2103445194, "Wonderous item")
+}
+
+enum class Rarity(val label: String) {
+    COMMON("Common"),
+    UNCOMMON("Uncommon"),
+    RARE("Rare"),
+    VERYRARE("Very Rare"),
+    LEGENDARY("Legendary")
+}

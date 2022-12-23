@@ -1,32 +1,55 @@
 package ca.kittle
 
+import ca.kittle.integrations.Database
+import ca.kittle.services.IdentityAuth
+import ca.kittle.plugins.configureAuthentication
 import ca.kittle.plugins.configureRouting
 import ca.kittle.plugins.configureSerialization
+import ca.kittle.util.EnvUtil
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.util.*
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-fun main() {
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-    logger.info { "Starting up" }
-    var port = 5000
-    val env = System.getenv("LOCAL_PORT")
-    if (env != null) {
-        try { port = env.toInt()
-        } catch (ignored: NumberFormatException) { }
-    }
-    logger.info { "Binding to port $port"}
-    DiscordListener.startDiscordListener()
-    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
-}
+
+//fun main() {
+//
+//    logger.info { "Starting up" }
+//    var port = 5000
+//    val env = System.getenv("LOCAL_PORT")
+//    if (env != null) {
+//        try { port = env.toInt()
+//        } catch (ignored: NumberFormatException) { }
+//    }
+//    logger.info { "Binding to port $port"}
+//    DiscordListener.startDiscordListener()
+//    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
+//        .start(wait = true)
+//}
 
 //fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-fun Application.module() {
+val identityAuth = IdentityAuth(EnvUtil.stringFromEnvironment("JWT_SECRET", ""))
+
+@KtorExperimentalAPI
+@Suppress("unused") // Referenced in application.conf
+@kotlin.jvm.JvmOverloads
+fun Application.module(testing: Boolean = false) {
+
     configureSerialization()
-    configureRouting()
+    configureAuthentication(identityAuth)
+    configureRouting(identityAuth)
+
+    Database.init()
+
 }

@@ -1,5 +1,6 @@
 package ca.kittle.integrations.spells
 
+import ca.kittle.models.Dice
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,7 +28,7 @@ data class Modifiers (
   @SerialName("modifierSubTypeId"     ) var modifierSubTypeId     : Int?              = null,
   @SerialName("componentId"           ) var componentId           : Int?              = null,
   @SerialName("componentTypeId"       ) var componentTypeId       : Int?              = null,
-  @SerialName("die"                   ) var die                   : Die?              = Die(),
+  @SerialName("die"                   ) var die                   : Dice?              = null,
   @SerialName("count"                 ) var count                 : Int?              = null,
   @SerialName("durationUnit"          ) var durationUnit          : String?           = null,
   @SerialName("usePrimaryStat"        ) var usePrimaryStat        : Boolean?          = null,

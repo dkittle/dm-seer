@@ -7,7 +7,7 @@ import java.util.*
 
 class CampaignRepository {
     private val logger = KotlinLogging.logger {}
-    private val db = Database()
+
 
 
 //    fun campaign(id: Long): Campaign? {

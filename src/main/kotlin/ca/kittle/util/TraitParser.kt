@@ -47,7 +47,7 @@ class TraitParser {
             return buildList<BaseCreatureSpells>() {
                 var s = findAtWill(description)
                 if (s.isNotEmpty()) add(PerDaySpells(10000, s))
-                for (i in 1..3) {
+                for (i in 5 downTo 1) {
                     s = findUsesPerDay(i, description)
                     if (s.isNotEmpty()) add(PerDaySpells(i, s))
                 }
@@ -66,7 +66,7 @@ class TraitParser {
         }
 
         fun findUsesPerDay(uses: Int, input: String): List<String> {
-            val mm = Pattern.compile("$uses/day each: (.+?)</p>").matcher(input)
+            val mm = Pattern.compile("$uses/day.*?: (.+?)</p>").matcher(input)
             return extractSpells(mm)
         }
 

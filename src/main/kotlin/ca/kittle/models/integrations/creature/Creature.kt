@@ -1,6 +1,7 @@
 package ca.kittle.models.integrations.creature
 
 import ca.kittle.models.Swarm
+import ca.kittle.models.integrations.Source
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -1,5 +1,6 @@
 package ca.kittle.models.integrations.character
 
+import ca.kittle.models.integrations.Source
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -18,7 +19,7 @@ data class SubclassDefinition (
     @SerialName("portraitAvatarUrl"     ) var portraitAvatarUrl     : String?                  = null,
     @SerialName("moreDetailsUrl"        ) var moreDetailsUrl        : String?                  = null,
     @SerialName("spellCastingAbilityId" ) var spellCastingAbilityId : Int?                     = null,
-    @SerialName("sources"               ) var sources               : ArrayList<ca.kittle.models.integrations.character.Source>,
+    @SerialName("sources"               ) var sources               : ArrayList<Source>,
     @SerialName("classFeatures"         ) var classFeatures         : ArrayList<ca.kittle.models.integrations.character.ClassFeatures>,
     @SerialName("hitDice"               ) var hitDice               : Int?                     = null,
     @SerialName("wealthDice"            ) var wealthDice            : String?                  = null,

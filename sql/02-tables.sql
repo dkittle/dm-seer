@@ -1,7 +1,8 @@
 CREATE TABLE accounts (
 id serial PRIMARY KEY,
-username VARCHAR (255) UNIQUE NOT NULL,
-email VARCHAR (255) UNIQUE NOT NULL,
+username VARCHAR UNIQUE NOT NULL,
+password VARCHAR NOT NULL,
+email VARCHAR UNIQUE NOT NULL,
 created_on TIMESTAMP NOT NULL,
 last_login TIMESTAMP
 );
@@ -97,23 +98,55 @@ CREATE TABLE sources (
 
 CREATE TABLE creatures (
 id SERIAL PRIMARY KEY,
-species VARCHAR(100) NOT NULL,
-subSpecies VARCHAR(100),
-size_id INT NOT NULL,
-alignment_id INT NOT NULL,
+species VARCHAR(80) NOT NULL,
+subSpecies VARCHAR(250),
+size VARCHAR(40) NOT NULL,
+alignment VARCHAR(120) NOT NULL,
 strength INT NOT NULL,
 dexterity INT NOT NULL,
 constitution INT NOT NULL,
 intelligence INT NOT NULL,
 wisdom INT NOT NULL,
 charisma INT NOT NULL,
-hitPoints INT NOT NULL,
+averageHitPoints INT NOT NULL,
 hitDiceString VARCHAR(50) NOT NULL,
-challenge_rating_id INT NOT NULL,
+challenge_rating VARCHAR(15) NOT NULL,
+swarmName VARCHAR(30),
+swarmSize INT,
 armorClass INT NOT NULL,
 armor VARCHAR(100) NOT NULL,
-FOREIGN KEY (size_id) REFERENCES sizes (id),
-FOREIGN KEY (challenge_rating_id) REFERENCES creature_crs (id)
+speeds VARCHAR(200) NOT NULL,
+senses VARCHAR(200) NOT NULL,
+savingThrows VARCHAR(200) NOT NULL,
+skills VARCHAR(200) NOT NULL,
+languages VARCHAR(200) NOT NULL,
+creatureType VARCHAR(20) NOT NULL,
+passivePerception INT NOT NULL,
+isHomebrew VARCHAR(10) NOT NULL,
+isLegacy VARCHAR(10) NOT NULL,
+isLegendary VARCHAR(10) NOT NULL,
+isMythic VARCHAR(10) NOT NULL,
+hasLair VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE creature_origins (
+    creature_id INT PRIMARY KEY,
+    origin VARCHAR(20) NOT NULL,
+    origin_id Int NOT NULL
+);
+
+CREATE TABLE creature_sources (
+    creature_id INT,
+    source_id INT,
+    page_number INT,
+    PRIMARY KEY (creature_id, source_id)
+);
+
+CREATE TABLE creature_avatars (
+      id SERIAL PRIMARY KEY,
+      creature_id INT NOT NULL,
+      url VARCHAR(254) NOT NULL,
+      FOREIGN KEY (creature_id) REFERENCES creatures (id)
 );
 
 CREATE TABLE creature_speeds (

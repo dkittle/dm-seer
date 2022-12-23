@@ -1,4 +1,4 @@
-package ca.kittle.models.integrations.spells
+package ca.kittle.models.integrations.spell
 
 import kotlinx.serialization.Serializable
 

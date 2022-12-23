@@ -4,6 +4,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 val ktorVersion: String by project
 val kotlinVersion: String by project
 val logbackVersion: String by project
+val exposedVersion: String by project
 
 plugins {
     application
@@ -31,6 +32,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
@@ -44,6 +47,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.postgresql:postgresql:42.5.1")
     implementation ("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+//    implementation("com.impossibl.pgjdbc-ng", "pgjdbc-ng", "0.8.3")
     implementation ("com.nfeld.jsonpathkt:jsonpathkt:2.0.1")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
 //    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

@@ -19,6 +19,7 @@ class DdbCreature {
     }
 
     fun createCreature(ddb: ca.kittle.models.integrations.creature.Creature): Creature {
+
         return Creature(
             0,
             ddb.name,

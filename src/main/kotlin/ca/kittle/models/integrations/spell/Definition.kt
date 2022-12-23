@@ -1,5 +1,6 @@
 package ca.kittle.integrations.spells
 
+import ca.kittle.models.integrations.Source
 import ca.kittle.models.integrations.character.Conditions
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -42,7 +43,7 @@ data class Definition (
   @SerialName("tags"                   ) var tags                   : ArrayList<String>    = arrayListOf(),
   @SerialName("castingTimeDescription" ) var castingTimeDescription : String?              = null,
   @SerialName("scaleType"              ) var scaleType              : String?              = null,
-  @SerialName("sources"                ) var sources                : ArrayList<Sources>   = arrayListOf(),
+  @SerialName("sources"                ) var sources                : ArrayList<Source>   = arrayListOf(),
   @SerialName("spellGroups"            ) var spellGroups            : ArrayList<String>    = arrayListOf()
 
 )

@@ -7,12 +7,21 @@ import java.util.regex.Pattern
 
 @Serializable
 data class Dice(
-    var diceCount: Int,
-    var diceValue: Int,
-    var diceMultiplier: Int?,
-    var fixedValue: Int?,
-    var diceString: String = ""
+    val diceCount: Int?,
+    val diceValue: Int?,
+    val diceMultiplier: Int?,
+    val fixedValue: Int?,
+    var diceString: String? = ""
 ) {
+
+    init {
+        if (diceString.isNullOrBlank()) {
+            diceString = "${diceCount}d${diceValue}"
+            if (fixedValue != null && fixedValue != 0)
+                diceString += "${if (fixedValue > 0) "+" else ""}$fixedValue"
+        }
+    }
+
     companion object {
         fun parseRoll(diceRoll: String): Dice {
             var numberDice = 0

@@ -1,37 +1,55 @@
 package ca.kittle.integrations
 
 import ca.kittle.util.EnvUtil
+import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.slf4j.LoggerFactory
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.SQLException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 
-class Database {
+object Database {
+
+    val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+
     val DATABASE_ERROR = "Error with data storage"
 
-    @Throws(SQLException::class)
-    fun connect(): Connection {
-        val dataSource = HikariDataSource()
-        dataSource.jdbcUrl = jdbcConnectString()
-        dataSource.username = username
-        dataSource.password = password
-        return dataSource.connection
+    fun init() {
+        Database.connect(hikari())
     }
 
-    fun jdbcConnectString(): String {
-        return "jdbc:postgresql://$hostname:$port/$db"
+    private fun hikari(): HikariDataSource {
+        val config = HikariConfig()
+        config.driverClassName = "org.postgresql.Driver"
+        config.jdbcUrl = jdbcConnectString()
+        config.username = username
+        config.password = password
+        config.maximumPoolSize = 3
+        config.isAutoCommit = false
+        config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        config.validate()
+        return HikariDataSource(config)
     }
 
-    private val password: String
-        private get() = EnvUtil.stringFromEnvironment("RDS_PASSWORD", "")
-    private val username: String
-        private get() = EnvUtil.stringFromEnvironment("RDS_USERNAME", "postgres")
-    private val db: String
-        private get() = EnvUtil.stringFromEnvironment("RDS_DB_NAME", "dmseer")
-    private val port: String
-        private get() = EnvUtil.stringFromEnvironment("RDS_PORT", "5432")
-    private val hostname: String
-        private get() = EnvUtil.stringFromEnvironment("RDS_HOSTNAME", "localhost")
-
+    suspend fun <T> dbQuery(block: () -> T): T =
+        withContext(Dispatchers.IO) {
+            transaction { block() }
+        }
 }
+
+fun jdbcConnectString(): String {
+    return "jdbc:postgresql://$hostname:$port/$db"
+}
+
+private val password: String
+    get() = EnvUtil.stringFromEnvironment("RDS_PASSWORD", "")
+private val username: String
+    get() = EnvUtil.stringFromEnvironment("RDS_USERNAME", "postgres")
+private val db: String
+    get() = EnvUtil.stringFromEnvironment("RDS_DB_NAME", "dmseer")
+private val port: String
+    get() = EnvUtil.stringFromEnvironment("RDS_PORT", "5432")
+private val hostname: String
+    get() = EnvUtil.stringFromEnvironment("RDS_HOSTNAME", "localhost")
+
