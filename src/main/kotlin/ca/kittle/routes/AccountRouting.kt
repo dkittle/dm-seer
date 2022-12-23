@@ -9,6 +9,7 @@ import ca.kittle.routes.support.FALSE
 import ca.kittle.routes.support.TRUE
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -39,16 +40,16 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
             call.respond(mapOf("token" to identityAuth.signedToken(newAccount.username)))
     }
 
-
-    route("/api/account") {
-        post("/isUsernameAvailable") {
-            val data: AccountUsername = call.receive<AccountUsername>()
-            val result = accountRepository.isUsernameAvailable(data.username.lowercase())
-            val message = if (result) TRUE else FALSE
-            call.respond(message)
-        }
-
+    post("/api/isUsernameAvailable") {
+        val data: AccountUsername = call.receive<AccountUsername>()
+        val result = accountRepository.isUsernameAvailable(data.username.lowercase())
+        val message = if (result) TRUE else FALSE
+        call.respond(message)
     }
 
+    authenticate {
+        route("/api/account") {
+        }
+    }
 
 }

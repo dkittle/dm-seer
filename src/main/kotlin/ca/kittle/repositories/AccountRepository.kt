@@ -4,6 +4,7 @@ import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
 import ca.kittle.models.*
 import mu.KotlinLogging
+import org.jetbrains.exposed.sql.lowerCase
 import org.mindrot.jbcrypt.BCrypt
 
 class AccountRepository {
@@ -14,7 +15,7 @@ class AccountRepository {
     }
 
     suspend fun isUsernameAvailable(username: String): Boolean = dbQuery {
-        return@dbQuery AccountDO.find { Accounts.username eq username }.empty()
+        return@dbQuery AccountDO.find { Accounts.username.lowerCase() eq username }.empty()
     }
 
     suspend fun create(newAccount: NewAccount): Account? = dbQuery {
