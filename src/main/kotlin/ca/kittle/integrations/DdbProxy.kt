@@ -107,7 +107,7 @@ class DdbProxy(private val cobaltSession: String?) {
         return result
     }
 
-    suspend fun campaigns(): List<DdbCampaign>? {
+    suspend fun campaigns(ddbKey: String): List<DdbCampaign>? {
         authenticate()
         logger.debug { "Getting all ddb user's campaigns" }
         val client = jsonClient()

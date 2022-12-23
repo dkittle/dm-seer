@@ -1,7 +1,9 @@
 package ca.kittle.routes
 
+import ca.kittle.integrations.Database
 import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.Accounts
+import ca.kittle.models.VttAccounts
 import ca.kittle.routes.support.OK
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -22,9 +24,7 @@ fun Route.coreRouting() {
 
     authenticate {
         post("/api/db") {
-            transaction {
-                SchemaUtils.create(Accounts)
-            }
+            Database.initDb()
             call.respond(HttpStatusCode.OK, OK)
         }
     }

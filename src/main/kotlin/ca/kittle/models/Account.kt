@@ -27,7 +27,10 @@ data class AccountUsername(val username: String)
 
 data class VttAccount(val id: Int, val accountId: Int, val vttName: String, val vttId: Int, val vttKey: String?)
 
-data class UserSession(val username: String, val vttId: Int?, val vttKey: String?)
+@Serializable
+data class NewVttAccount(val vttName: String, val vttId: Int, val vttKey: String?)
+
+data class UserSession(val accountId: Int, val username: String, val vttId: Int?, val vttKey: String?)
 
 object Accounts : IntIdTable("accounts") {
     val username = text("username").uniqueIndex()
@@ -48,7 +51,7 @@ class AccountDO(id: EntityID<Int>): IntEntity(id) {
     var lastLogin by Accounts.lastLogin
 }
 
-object VttAccounts : IntIdTable("accounts") {
+object VttAccounts : IntIdTable("vtt_accounts") {
     val vttName = text("vtt_name").uniqueIndex()
     val vttId = integer("vtt_id")
     val vttKey = text("vtt_key").nullable()

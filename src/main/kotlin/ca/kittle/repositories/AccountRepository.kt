@@ -4,10 +4,7 @@ import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
 import ca.kittle.models.*
 import mu.KotlinLogging
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.lowerCase
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.mindrot.jbcrypt.BCrypt
 
 class AccountRepository {
@@ -36,6 +33,23 @@ class AccountRepository {
         VttAccounts.select { (VttAccounts.account eq accountId) and (VttAccounts.vttName eq "DDB") }
             .mapNotNull { toVttAccount(it) }
             .singleOrNull()
+    }
+
+    suspend fun vttAccount(accountId: Int, newVttAccount: NewVttAccount): Int = dbQuery {
+        val old = VttAccounts.select { (VttAccounts.account eq accountId) and (VttAccounts.vttName eq "DDB") }
+            .mapNotNull { toVttAccount(it) }
+            .singleOrNull()
+            ?: return@dbQuery VttAccounts.insertAndGetId {
+                it[account] = accountId
+                it[vttName] = newVttAccount.vttName
+                it[vttId] = newVttAccount.vttId
+                it[vttKey] = newVttAccount.vttKey
+            }.value
+        return@dbQuery VttAccounts.update( { VttAccounts.id eq old.id }) {
+            it[vttName] = newVttAccount.vttName
+            it[vttId] = newVttAccount.vttId
+            it[vttKey] = newVttAccount.vttKey
+        }
     }
 
 //    suspend fun getUserByEmail(email: String): User? = dbQuery {

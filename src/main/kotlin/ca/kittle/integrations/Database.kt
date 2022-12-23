@@ -1,22 +1,38 @@
 package ca.kittle.integrations
 
+import ca.kittle.models.Accounts
+import ca.kittle.models.VttAccounts
 import ca.kittle.util.EnvUtil
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.*
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Database {
 
     val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-
+    private val logger = KotlinLogging.logger {}
     val DATABASE_ERROR = "Error with data storage"
 
     fun init() {
         Database.connect(hikari())
+    }
+
+    fun initDb() {
+        logger.info {"Initializing database" }
+        transaction {
+            addLogger(StdOutSqlLogger)
+            SchemaUtils.create(Accounts, VttAccounts)
+            commit()
+            logger.debug {"Schema created" }
+        }
     }
 
     private fun hikari(): HikariDataSource {

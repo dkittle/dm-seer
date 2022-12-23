@@ -1,12 +1,11 @@
 package ca.kittle.routes
 
-import ca.kittle.models.AccountUsername
-import ca.kittle.models.Credentials
+import ca.kittle.models.*
 import ca.kittle.services.IdentityAuth
-import ca.kittle.models.NewAccount
-import ca.kittle.models.UserSession
 import ca.kittle.repositories.AccountRepository
+import ca.kittle.routes.support.ERROR
 import ca.kittle.routes.support.FALSE
+import ca.kittle.routes.support.Status
 import ca.kittle.routes.support.TRUE
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -28,7 +27,7 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
             return@post call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
         }
         val ddb = accountRepository.getDDBAccount(account.id)
-        call.sessions.set(UserSession(account.username, ddb?.vttId, ddb?.vttKey))
+        call.sessions.set(UserSession(account.id, account.username, ddb?.vttId, ddb?.vttKey))
         call.respond(mapOf("token" to identityAuth.signedToken(account.username)))
     }
 
@@ -53,6 +52,13 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
 
     authenticate {
         route("/api/account") {
+            post("/ddb") {
+                val userSession = call.sessions.get<UserSession>() ?:
+                    return@post call.respondText("No user session", status = HttpStatusCode.BadRequest)
+                val data = call.receive<NewVttAccount>()
+                val result = accountRepository.vttAccount(userSession.accountId, data)
+                call.respond(HttpStatusCode.Created, Status("OK", "DDB account link created"))
+            }
         }
     }
 
