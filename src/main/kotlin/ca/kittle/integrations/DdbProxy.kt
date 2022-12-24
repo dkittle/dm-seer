@@ -68,14 +68,14 @@ class DdbProxy(private val cobaltSession: String?) {
         }
     }
 
-    private suspend fun authenticate(): Unit {
-        if (cobaltSession != null && (System.currentTimeMillis() > cobaltTokenTtl || cobaltToken.isEmpty())) {
+    private suspend fun authenticate(cobaltKey: String): Unit {
+        if (System.currentTimeMillis() > cobaltTokenTtl || cobaltToken.isEmpty()) {
             logger.debug { "Getting auth token from ddb" }
             val client = jsonClient()
             val response = client.post("https://auth-service.dndbeyond.com/v1/cobalt-token") {
                 headers {
                     append(HttpHeaders.Accept, "application/json")
-                    append(HttpHeaders.Cookie, "CobaltSession=$cobaltSession")
+                    append(HttpHeaders.Cookie, "CobaltSession=$cobaltKey")
                 }
             }
             val result: DdbAuthResponse = response.body()
@@ -87,15 +87,15 @@ class DdbProxy(private val cobaltSession: String?) {
         }
     }
 
-    suspend fun config(): String? {
-        authenticate()
+    suspend fun config(cobaltKey: String): String? {
+        authenticate(cobaltKey)
         logger.debug { "Getting ddb user's configuration" }
         val client = jsonClient()
         val response = client.get(DDB_CONFIG_SERVICE) {
             headers {
                 append(HttpHeaders.Accept, "application/json")
                 append(HttpHeaders.ContentType, "application/json")
-                append(HttpHeaders.Cookie, "cobalt-token=$cobaltToken; CobaltSession=$cobaltSession")
+                append(HttpHeaders.Cookie, "cobalt-token=$cobaltToken; CobaltSession=$cobaltKey")
             }
         }
         client.close()
@@ -107,8 +107,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result
     }
 
-    suspend fun campaigns(ddbKey: String): List<DdbCampaign>? {
-        authenticate()
+    suspend fun campaigns(cobaltKey: String): List<DdbCampaign>? {
+        authenticate(cobaltKey)
         logger.debug { "Getting all ddb user's campaigns" }
         val client = jsonClient()
         val response = client.get("https://www.dndbeyond.com/api/campaign/active-campaigns") {
@@ -144,8 +144,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return getCampaignId(result.data)
     }
 
-    suspend fun userCharacters(id: Long): List<DdbCharacterHeadline>? {
-        authenticate()
+    suspend fun userCharacters(cobaltKey: String, id: Long): List<DdbCharacterHeadline>? {
+        authenticate(cobaltKey)
         logger.debug { "Getting list of user's ddb characters" }
         val client = jsonClient()
         val response = client.get("$DDB_LIST_CHARACTERS?userId=$id") {
@@ -163,8 +163,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.data.characters
     }
 
-    suspend fun characters(ids: List<Long>): List<ca.kittle.models.integrations.tersecharacter.Character>? {
-        authenticate()
+    suspend fun characters(cobaltKey: String, ids: List<Long>): List<ca.kittle.models.integrations.tersecharacter.Character>? {
+        authenticate(cobaltKey)
         logger.debug { "Getting several ddb characters: $ids" }
         val client = jsonClient()
         val response = client.post(DDB_NEW_CHARACTER_SERVICE) {
@@ -200,8 +200,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.data
     }
 
-    suspend fun items(): List<Item>? {
-        authenticate()
+    suspend fun items(cobaltKey: String): List<Item>? {
+        authenticate(cobaltKey)
         val campaignId = getDmCampaignId()
         logger.debug { "Getting items" }
         val client = jsonClient()
@@ -242,8 +242,8 @@ class DdbProxy(private val cobaltSession: String?) {
     }
 
     // "Druid", "Cleric", "Paladin", "Artificer"
-    suspend fun spells(klass: String): List<Spell>? {
-        authenticate()
+    suspend fun spells(cobaltKey: String, klass: String): List<Spell>? {
+        authenticate(cobaltKey)
         val campaignId = getDmCampaignId()
         val classId = classIdForName(klass)
         logger.debug { "Getting spells for $klass" }
@@ -288,8 +288,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return spells
     }
 
-    suspend fun encounters(): List<Encounter>? {
-        authenticate()
+    suspend fun encounters(cobaltKey: String): List<Encounter>? {
+        authenticate(cobaltKey)
         logger.debug { "Getting all ddb user's encounters" }
         val encounters = arrayListOf<Encounter>()
         var offset = 0
@@ -318,8 +318,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return encounters
     }
 
-    suspend fun encounter(id: String): Encounter? {
-        authenticate()
+    suspend fun encounter(cobaltKey: String, id: String): Encounter? {
+        authenticate(cobaltKey)
         logger.debug { "Getting a private ddb encounter" }
         val client = jsonClient()
         val response = client.get("$DDB_ENCOUNTER_SERVICE/$id") {
@@ -336,8 +336,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.encounter
     }
 
-    suspend fun searchCreatures(term: String): List<Creature>? {
-        authenticate()
+    suspend fun searchCreatures(cobaltKey: String, term: String): List<Creature>? {
+        authenticate(cobaltKey)
         logger.debug { "Searching ddb creatures: $term" }
         val client = jsonClient()
         val url =
@@ -358,8 +358,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.creatures.filter { it.isReleased }
     }
 
-    suspend fun creature(id: Long): Creature? {
-        authenticate()
+    suspend fun creature(cobaltKey: String, id: Long): Creature? {
+        authenticate(cobaltKey)
         logger.debug { "Getting a ddb creature" }
         val client = jsonClient()
         val response = client.get("$DDB_CREATURE_SERIVCE?ids=$id") {

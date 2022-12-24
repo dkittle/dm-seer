@@ -25,12 +25,12 @@ data class Credentials(val username: String, val password: String)
 @Serializable
 data class AccountUsername(val username: String)
 
-data class VttAccount(val id: Int, val accountId: Int, val vttName: String, val vttId: Int, val vttKey: String?)
+data class VttAccount(val id: Int, val accountId: Int, val vttName: String, val vttId: Int?, val vttKey: String?)
 
 @Serializable
 data class NewVttAccount(val vttName: String, val vttId: Int, val vttKey: String?)
 
-data class UserSession(val accountId: Int, val username: String, val vttId: Int?, val vttKey: String?)
+data class UserSession(val accountId: Int, val username: String, val vttId: Int = 0, val vttKey: String = "")
 
 object Accounts : IntIdTable("accounts") {
     val username = text("username").uniqueIndex()
@@ -53,7 +53,7 @@ class AccountDO(id: EntityID<Int>): IntEntity(id) {
 
 object VttAccounts : IntIdTable("vtt_accounts") {
     val vttName = text("vtt_name").uniqueIndex()
-    val vttId = integer("vtt_id")
+    val vttId = integer("vtt_id").nullable()
     val vttKey = text("vtt_key").nullable()
     val account = reference("account_id", Accounts)
 }

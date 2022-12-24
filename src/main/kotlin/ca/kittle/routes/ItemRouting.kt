@@ -1,10 +1,12 @@
 package ca.kittle.routes
 
+import ca.kittle.models.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlin.random.Random
 
 
@@ -13,8 +15,12 @@ fun Route.itemRouting() {
     authenticate {
         route("/api/items") {
             get("/ddb") {
+                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                if (vttKey.isBlank())
+                    return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
                 val items =
-                    ddbProxy.items() ?: return@get call.respondText("No items found", status = HttpStatusCode.NotFound)
+                    ddbProxy.items(vttKey) ?: return@get call.respondText("No items found", status = HttpStatusCode.NotFound)
 //            for (item in items) {
 //                ddbProxy.cacheItemAvatars(item)
 //                Thread.sleep(Random.nextLong(1, 4) * 1000)

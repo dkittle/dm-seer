@@ -16,17 +16,16 @@ fun Route.campaignRouting() {
     authenticate {
         route("/api/campaigns") {
             get("/ddb") {
-                val userSession = call.sessions.get<UserSession>()
-                val ddbKey = userSession?.vttKey ?:
-                    return@get call.respondText("No DDB cobalt key configured",
-                        status = HttpStatusCode.ProxyAuthenticationRequired)
-                val campaigns = ddbProxy.campaigns(ddbKey) ?: return@get call.respondText(
-                    "No campaigns found on DDB. DDB id is ${userSession?.vttId}",
+                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                if (vttKey.isBlank())
+                    return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
+                val campaigns = ddbProxy.campaigns(vttKey) ?: return@get call.respondText(
+                    "No campaigns found on DDB. DDB id is $vttId",
                     status = HttpStatusCode.BadRequest
                 )
-                if (userSession.vttId != null) {
-                    campaignRepository.cacheCampaigns(campaigns.filter { it.dmId.toInt() == userSession.vttId },
-                        userSession.accountId)
+                if (vttId > 0) {
+                    campaignRepository.cacheCampaigns(campaigns.filter { it.dmId.toInt() == vttId }, accountId)
                 }
 
                 call.respond(campaigns)

@@ -1,6 +1,7 @@
 package ca.kittle.routes
 
 import ca.kittle.integrations.mapping.DdbCreature
+import ca.kittle.models.UserSession
 import ca.kittle.repositories.CreatureRepository
 import ca.kittle.repositories.EncounterRepository
 import io.ktor.http.*
@@ -8,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 
 val creatureRepository = CreatureRepository()
 val mapping = DdbCreature()
@@ -29,11 +31,15 @@ fun Route.creatureRouting() {
     authenticate {
         route("/api/creature") {
             get("/ddb/{id?}") {
+                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                if (vttKey.isBlank())
+                    return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
                 val id = call.parameters["id"] ?: return@get call.respondText(
                     "Missing ddb creature id",
                     status = HttpStatusCode.BadRequest
                 )
-                val creature = ddbProxy.creature(id.toLong()) ?: return@get call.respondText(
+                val creature = ddbProxy.creature(vttKey, id.toLong()) ?: return@get call.respondText(
                     "No creature found with id $id",
                     status = HttpStatusCode.NotFound
                 )
@@ -44,7 +50,7 @@ fun Route.creatureRouting() {
                     )
                 ddbProxy.cacheAvatars(creature)
                 val new = mapping.createCreature(creature)
-                //            creatureRepository.createCreature(new, "DDB", creature.id)
+//                creatureRepository.createCreature(new, "DDB", creature.id)
                 call.respond(new)
                 //            call.respond(creature)
             }
@@ -53,8 +59,12 @@ fun Route.creatureRouting() {
 //                    "Missing ddb creature search term",
 //                    status = HttpStatusCode.BadRequest
 //                )
+                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                if (vttKey.isBlank())
+                    return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
                 val term = call.parameters["term"] ?: ""
-                val creatures = ddbProxy.searchCreatures(term) ?: return@get call.respondText(
+                val creatures = ddbProxy.searchCreatures(vttKey, term) ?: return@get call.respondText(
                     "No creatures found with term $term",
                     status = HttpStatusCode.NotFound
                 )

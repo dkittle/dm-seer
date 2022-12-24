@@ -27,7 +27,7 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
             return@post call.respondText("Invalid credentials", status = HttpStatusCode.Unauthorized)
         }
         val ddb = accountRepository.getDDBAccount(account.id)
-        call.sessions.set(UserSession(account.id, account.username, ddb?.vttId, ddb?.vttKey))
+        call.sessions.set(UserSession(account.id, account.username, ddb?.vttId ?: 0, ddb?.vttKey ?: ""))
         call.respond(mapOf("token" to identityAuth.signedToken(account.username)))
     }
 
