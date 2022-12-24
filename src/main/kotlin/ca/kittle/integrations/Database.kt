@@ -1,6 +1,8 @@
 package ca.kittle.integrations
 
 import ca.kittle.models.Accounts
+import ca.kittle.models.CampaignOrigins
+import ca.kittle.models.Campaigns
 import ca.kittle.models.VttAccounts
 import ca.kittle.util.EnvUtil
 import com.zaxxer.hikari.HikariConfig
@@ -29,7 +31,7 @@ object Database {
         logger.info {"Initializing database" }
         transaction {
             addLogger(StdOutSqlLogger)
-            SchemaUtils.create(Accounts, VttAccounts)
+            SchemaUtils.create(Accounts, VttAccounts, Campaigns, CampaignOrigins)
             commit()
             logger.debug {"Schema created" }
         }

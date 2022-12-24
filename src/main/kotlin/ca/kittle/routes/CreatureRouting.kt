@@ -49,10 +49,11 @@ fun Route.creatureRouting() {
                 //            call.respond(creature)
             }
             get("/ddb/search/{term?}") {
-                val term = call.parameters["term"] ?: return@get call.respondText(
-                    "Missing ddb creature search term",
-                    status = HttpStatusCode.BadRequest
-                )
+//                val term = call.parameters["term"] ?: return@get call.respondText(
+//                    "Missing ddb creature search term",
+//                    status = HttpStatusCode.BadRequest
+//                )
+                val term = call.parameters["term"] ?: ""
                 val creatures = ddbProxy.searchCreatures(term) ?: return@get call.respondText(
                     "No creatures found with term $term",
                     status = HttpStatusCode.NotFound

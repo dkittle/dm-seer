@@ -341,7 +341,7 @@ class DdbProxy(private val cobaltSession: String?) {
         logger.debug { "Searching ddb creatures: $term" }
         val client = jsonClient()
         val url =
-            "$DDB_CREATURE_SERIVCE?search=$term&skip=0&take=1&showHomebrew=f&sources=1&sources=8&sources=15"
+            "$DDB_CREATURE_SERIVCE?search=$term&skip=0&take=50&showHomebrew=f&sources=1&sources=8&sources=15"
         logger.debug { url }
         logger.debug { cobaltToken }
         val response = client.get(url) {
@@ -353,9 +353,8 @@ class DdbProxy(private val cobaltSession: String?) {
         client.close()
         if (response.status != HttpStatusCode.OK)
             return null
-        val tmp: String = response.body()
-        logger.debug { tmp }
         val result: DdbCreatures = response.body()
+        logger.debug { "Total results: ${result.pagination?.total}" }
         return result.creatures.filter { it.isReleased }
     }
 
