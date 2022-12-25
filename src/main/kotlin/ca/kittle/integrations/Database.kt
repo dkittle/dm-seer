@@ -28,7 +28,7 @@ object Database {
         logger.info {"Initializing database" }
         transaction {
             addLogger(StdOutSqlLogger)
-            SchemaUtils.create(Accounts, VttAccounts, Campaigns, CampaignOrigins, Encounters, Locations, Rooms, DndSources)
+            SchemaUtils.create(Accounts, VttAccounts, Campaigns, CampaignOrigins, Encounters, Locations, Rooms, DndSources, Encounters, Combats, Combatants, Creatures, Characters)
             commit()
             logger.debug {"Schema created" }
         }

@@ -18,31 +18,6 @@ import java.util.regex.Pattern
 class CampaignRepository {
     private val logger = KotlinLogging.logger {}
 
-    suspend fun cacheCampaigns(campaigns: List<DdbCampaign>, accountId: Int) {
-        campaigns.forEach { campaign ->
-            val i = campaignFromDdb(campaign, accountId)
-            if (i > 0)
-                campaignOrigin(i, campaign.id.toInt())
-        }
-    }
-
-    suspend fun campaignFromDdb(campaign: DdbCampaign, accountId: Int): Int = dbQuery {
-        CampaignOrigins.select { CampaignOrigins.originId eq campaign.id.toInt() }
-            .mapNotNull { it }
-            .singleOrNull()
-            ?: return@dbQuery Campaigns.insertAndGetId {
-                it[name] = campaign.name
-                it[splashUrl] = campaign.splashUrl
-                it[description] = ""
-                it[publicNotes] = ""
-                it[privateNotes] = ""
-                it[official] = null
-                it[createdOn] = parseDdbDate(campaign.dateCreated)
-                it[updatedOn] = Database.now
-                it[dmId] = accountId
-            }.value
-        return@dbQuery 0
-    }
 
     suspend fun campaign(campaign: Campaign, accountId: Int): Int = dbQuery {
         val old = Campaigns.select { Campaigns.id eq campaign.id }
@@ -70,16 +45,46 @@ class CampaignRepository {
         }
     }
 
-    suspend fun campaignOrigin(campaignId: Int, vttId: Int): Int = dbQuery {
+    /**
+     * These functions cache data from DDB
+     */
+    suspend fun cacheCampaigns(campaigns: List<DdbCampaign>, accountId: Int) = dbQuery {
+        campaigns.forEach { campaign ->
+            val i = campaignFromDdb(campaign, accountId)
+            if (i > 0)
+                campaignOrigin(i, campaign.id.toInt())
+        }
+    }
+
+    fun campaignFromDdb(campaign: DdbCampaign, accountId: Int): Int {
+        CampaignOrigins.select { CampaignOrigins.originId eq campaign.id.toInt() }
+            .mapNotNull { it }
+            .singleOrNull()
+            ?: return Campaigns.insertAndGetId {
+                it[name] = campaign.name
+                it[splashUrl] = campaign.splashUrl
+                it[description] = ""
+                it[publicNotes] = ""
+                it[privateNotes] = ""
+                it[official] = null
+                it[createdOn] = parseDdbDate(campaign.dateCreated)
+                it[updatedOn] = Database.now
+                it[dmId] = accountId
+            }.value
+        return 0
+    }
+
+
+    fun campaignOrigin(campaignId: Int, vttId: Int): Int {
         CampaignOrigins.select { CampaignOrigins.campaign eq campaignId }
             .mapNotNull { it }
             .singleOrNull()
-            ?: return@dbQuery CampaignOrigins.insertAndGetId {
+            ?: return CampaignOrigins.insertAndGetId {
                 it[originId] = vttId
                 it[originName] = "DDB"
                 it[campaign] = campaignId
             }.value
-        return@dbQuery 0
+        return 0
     }
 
     private fun parseDdbDate(date: String): LocalDateTime {
