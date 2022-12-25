@@ -1,5 +1,6 @@
 package ca.kittle.routes
 
+import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.UserSession
 import ca.kittle.repositories.CampaignRepository
 import io.ktor.http.*
@@ -20,14 +21,12 @@ fun Route.campaignRouting() {
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 if (vttKey.isBlank())
                     return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
-                val campaigns = ddbProxy.campaigns(vttKey) ?: return@get call.respondText(
+                val campaigns = DdbProxy(vttId, vttKey).campaigns() ?: return@get call.respondText(
                     "No campaigns found on DDB. DDB id is $vttId",
                     status = HttpStatusCode.BadRequest
                 )
-                if (vttId > 0) {
+                if (vttId > 0)
                     campaignRepository.cacheCampaigns(campaigns.filter { it.dmId.toInt() == vttId }, accountId)
-                }
-
                 call.respond(campaigns)
             }
         }

@@ -1,5 +1,6 @@
 package ca.kittle.routes
 
+import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,15 +14,15 @@ fun Route.spellRouting() {
     authenticate {
         route("/api/spells") {
             get("/ddb/{name}") {
-                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
-                return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                val (_, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 if (vttKey.isBlank())
                     return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
                 val name = call.parameters["name"] ?: return@get call.respondText(
                     "Missing caster class name",
                     status = HttpStatusCode.BadRequest
                 )
-                val spells = ddbProxy.spells(vttKey, name) ?: return@get call.respondText(
+                val spells = DdbProxy(vttId, vttKey).spells(name) ?: return@get call.respondText(
                     "No spells found for $name",
                     status = HttpStatusCode.NotFound
                 )

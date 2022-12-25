@@ -34,12 +34,8 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 
-private val logger = KotlinLogging.logger {}
 
-class DdbProxy(private val cobaltSession: String?) {
-
-    private var cobaltToken = ""
-    private var cobaltTokenTtl: Long = 0
+class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
 
     private val USER_AGENT =
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36";
@@ -68,34 +64,36 @@ class DdbProxy(private val cobaltSession: String?) {
         }
     }
 
-    private suspend fun authenticate(cobaltKey: String): Unit {
+    private suspend fun authenticate(): String {
+        val (cobaltToken, cobaltTokenTtl) = getCobaltSession(ddbId)
         if (System.currentTimeMillis() > cobaltTokenTtl || cobaltToken.isEmpty()) {
             logger.debug { "Getting auth token from ddb" }
             val client = jsonClient()
             val response = client.post("https://auth-service.dndbeyond.com/v1/cobalt-token") {
                 headers {
                     append(HttpHeaders.Accept, "application/json")
-                    append(HttpHeaders.Cookie, "CobaltSession=$cobaltKey")
+                    append(HttpHeaders.Cookie, "CobaltSession=$cobaltSession")
                 }
             }
             val result: DdbAuthResponse = response.body()
-            cobaltToken = result.token
             val ttl = if (result.ttl < 5*60*1000) 5*60*1000 else result.ttl
-            cobaltTokenTtl = System.currentTimeMillis() + (ttl * .85).toLong()
+            storeToken(ddbId, result.token, System.currentTimeMillis() + (ttl * .85).toLong())
             logger.debug { "Token is good for ${result.ttl / 60} minutes" }
             client.close()
+            return result.token
         }
+        return cobaltToken
     }
 
-    suspend fun config(cobaltKey: String): String? {
-        authenticate(cobaltKey)
+    suspend fun config(): String? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting ddb user's configuration" }
         val client = jsonClient()
         val response = client.get(DDB_CONFIG_SERVICE) {
             headers {
                 append(HttpHeaders.Accept, "application/json")
                 append(HttpHeaders.ContentType, "application/json")
-                append(HttpHeaders.Cookie, "cobalt-token=$cobaltToken; CobaltSession=$cobaltKey")
+                append(HttpHeaders.Cookie, "cobalt-token=$cobaltToken; CobaltSession=$cobaltSession")
             }
         }
         client.close()
@@ -103,12 +101,11 @@ class DdbProxy(private val cobaltSession: String?) {
         if (response.status != HttpStatusCode.OK)
             return null
         val result: String = response.body()
-        codifyConfig(result)
         return result
     }
 
-    suspend fun campaigns(cobaltKey: String): List<DdbCampaign>? {
-        authenticate(cobaltKey)
+    suspend fun campaigns(): List<DdbCampaign>? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting all ddb user's campaigns" }
         val client = jsonClient()
         val response = client.get("https://www.dndbeyond.com/api/campaign/active-campaigns") {
@@ -121,13 +118,12 @@ class DdbProxy(private val cobaltSession: String?) {
         client.close()
         if (response.status != HttpStatusCode.OK)
             return null
-        val tmp: String = response.body()
-        logger.debug { tmp }
         val result: DdbCampaignResponse = response.body()
         return setSplashUrls(result.data)
     }
 
     suspend fun getDmCampaignId(): Long {
+        val cobaltToken = authenticate()
         logger.debug { "Getting a campaign id for the ddb user" }
         val client = jsonClient()
         val response = client.get("https://www.dndbeyond.com/api/campaign/active-campaigns") {
@@ -144,11 +140,11 @@ class DdbProxy(private val cobaltSession: String?) {
         return getCampaignId(result.data)
     }
 
-    suspend fun userCharacters(cobaltKey: String, id: Long): List<DdbCharacterHeadline>? {
-        authenticate(cobaltKey)
+    suspend fun userCharacters(): List<DdbCharacterHeadline>? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting list of user's ddb characters" }
         val client = jsonClient()
-        val response = client.get("$DDB_LIST_CHARACTERS?userId=$id") {
+        val response = client.get("$DDB_LIST_CHARACTERS?userId=$ddbId") {
             headers {
                 append(HttpHeaders.UserAgent, USER_AGENT)
                 append(HttpHeaders.Accept, "application/json")
@@ -159,12 +155,11 @@ class DdbProxy(private val cobaltSession: String?) {
         if (response.status != HttpStatusCode.OK)
             return null
         val result: DdbUserCharactersResponse = response.body()
-//        logger.debug { result }
         return result.data.characters
     }
 
-    suspend fun characters(cobaltKey: String, ids: List<Long>): List<ca.kittle.models.integrations.tersecharacter.Character>? {
-        authenticate(cobaltKey)
+    suspend fun characters(ids: List<Long>): List<ca.kittle.models.integrations.tersecharacter.Character>? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting several ddb characters: $ids" }
         val client = jsonClient()
         val response = client.post(DDB_NEW_CHARACTER_SERVICE) {
@@ -184,6 +179,7 @@ class DdbProxy(private val cobaltSession: String?) {
     }
 
     suspend fun character(id: String): DdbCharacter? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting a public ddb character" }
         val client = jsonClient()
         val response = client.get("https://character-service.dndbeyond.com/character/v5/character/$id") {
@@ -200,8 +196,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.data
     }
 
-    suspend fun items(cobaltKey: String): List<Item>? {
-        authenticate(cobaltKey)
+    suspend fun items(): List<Item>? {
+        val cobaltToken = authenticate()
         val campaignId = getDmCampaignId()
         logger.debug { "Getting items" }
         val client = jsonClient()
@@ -242,8 +238,8 @@ class DdbProxy(private val cobaltSession: String?) {
     }
 
     // "Druid", "Cleric", "Paladin", "Artificer"
-    suspend fun spells(cobaltKey: String, klass: String): List<Spell>? {
-        authenticate(cobaltKey)
+    suspend fun spells(klass: String): List<Spell>? {
+        val cobaltToken = authenticate()
         val campaignId = getDmCampaignId()
         val classId = classIdForName(klass)
         logger.debug { "Getting spells for $klass" }
@@ -288,15 +284,15 @@ class DdbProxy(private val cobaltSession: String?) {
         return spells
     }
 
-    suspend fun encounters(cobaltKey: String): List<Encounter>? {
-        authenticate(cobaltKey)
+    suspend fun encounters(): List<Encounter> {
+        val cobaltToken = authenticate()
         logger.debug { "Getting all ddb user's encounters" }
         val encounters = arrayListOf<Encounter>()
         var offset = 0
         var numberEncounters = 0
-        val client = jsonClient()
-        while (offset == 0 || offset < 10) {
+        while (offset == 0 || offset < 20) {
 //        while (offset == 0 || offset < numberEncounters) {
+            val client = jsonClient()
             val url = if (offset > 0) "$DDB_ENCOUNTER_SERVICE?skip=$offset&take=10" else DDB_ENCOUNTER_SERVICE
             val response = client.get(url) {
                 headers {
@@ -305,21 +301,23 @@ class DdbProxy(private val cobaltSession: String?) {
                     append(HttpHeaders.Authorization, "Bearer $cobaltToken")
                 }
             }
-            logger.info { "Status ${response.status}" }
-            if (response.status != HttpStatusCode.OK)
-                return null
-            val tmp: String = response.body()
-            logger.debug { tmp }
+            if (response.status != HttpStatusCode.OK) {
+                logger.warn { "Problem getting encounters: ${response.status}"}
+                return encounters
+            }
             val result: DdbEncounters = response.body()
             numberEncounters = result.pagination?.total ?: return encounters
             encounters.addAll(result.encounters)
+            logger.debug { "Got results $offset-${offset + result.encounters.size -1} of $numberEncounters encounters" }
             offset += 10
+            client.close()
         }
+        logger.debug { "Returning ${encounters.size} encounters" }
         return encounters
     }
 
-    suspend fun encounter(cobaltKey: String, id: String): Encounter? {
-        authenticate(cobaltKey)
+    suspend fun encounter(id: String): Encounter? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting a private ddb encounter" }
         val client = jsonClient()
         val response = client.get("$DDB_ENCOUNTER_SERVICE/$id") {
@@ -336,8 +334,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.encounter
     }
 
-    suspend fun searchCreatures(cobaltKey: String, term: String): List<Creature>? {
-        authenticate(cobaltKey)
+    suspend fun searchCreatures(term: String): List<Creature>? {
+        val cobaltToken = authenticate()
         logger.debug { "Searching ddb creatures: $term" }
         val client = jsonClient()
         val url =
@@ -358,8 +356,8 @@ class DdbProxy(private val cobaltSession: String?) {
         return result.creatures.filter { it.isReleased }
     }
 
-    suspend fun creature(cobaltKey: String, id: Long): Creature? {
-        authenticate(cobaltKey)
+    suspend fun creature(id: Int): Creature? {
+        val cobaltToken = authenticate()
         logger.debug { "Getting a ddb creature" }
         val client = jsonClient()
         val response = client.get("$DDB_CREATURE_SERIVCE?ids=$id") {
@@ -516,32 +514,47 @@ class DdbProxy(private val cobaltSession: String?) {
         return result
     }
 
-    fun userCache(userId: Long): Long {
-        val decoder = Base64.getDecoder()
-        var m = Pattern.compile("(.*?)\\.(.*?)\\.").matcher(cobaltToken)
-        val userDetails = if (m.find()) m.group(2) else ""
-        val jwt = decoder.decode(userDetails)
-        m = Pattern.compile("nameidentifier\":\"(\\d*?)\"").matcher(String(jwt))
-        return if (m.find()) m.group(1)?.toLong() ?: 0  else 0
-    }
 
     fun getCampaignId(campaigns: List<DdbCampaign>?): Long {
         if (campaigns.isNullOrEmpty()) {
             logger.debug { "Could not get DM's campaigns" }
         }
-        val userId = userCache(0)
-        return campaigns?.filter { it.dmId == userId }?.last()?.id ?: 0
+        return campaigns?.filter { it.dmId.toInt() == ddbId }?.last()?.id ?: 0
     }
 
-    private fun codifyConfig(input: String) {
-        val jsonpath = JsonPath("$.raceGroups.['id','name']")
-        val raceGroups = jsonpath.readFromJson<List<Map<String, String>>>(input)
-        logger.debug { raceGroups }
-    }
+    data class CobaltSession(val cobaltSession: String, val cobaltTtl: Long)
 
     companion object {
+        private val logger = KotlinLogging.logger {}
 
+        fun getDdbIdFromCobaltKey(ddbKey: String): Long {
+            val decoder = Base64.getDecoder()
+            var m = Pattern.compile("(.*?)\\.(.*?)\\.").matcher(ddbKey)
+            val userDetails = if (m.find()) m.group(2) else ""
+            val jwt = decoder.decode(userDetails)
+            m = Pattern.compile("nameidentifier\":\"(\\d*?)\"").matcher(String(jwt))
+            return if (m.find()) m.group(1)?.toLong() ?: 0  else 0
+        }
+
+
+        private val keyMap = object : LinkedHashMap<Int, CobaltSession>(200, .75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, CobaltSession>): Boolean {
+                return size > 300
+            }
+        }
+
+        fun getToken(ddbId: Int): String? {
+            return keyMap[ddbId]?.cobaltSession
+        }
+
+        fun getCobaltSession(ddbId: Int): CobaltSession {
+            return keyMap[ddbId] ?: CobaltSession("", 0)
+        }
+
+        fun storeToken(ddbId: Int, cobaltSession: String, ttl: Long) {
+            keyMap[ddbId] = CobaltSession(cobaltSession, ttl)
+        }
     }
 }
 
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEwNzMyNjM4MyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJEb25EYURNIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiZG9uQGtpdHRsZS5jYSIsImRpc3BsYXlOYW1lIjoiRG9uRGFETSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlJlZ2lzdGVyZWQgVXNlcnMiLCJodHRwOi8vc2NoZW1hcy5kbmRiZXlvbmQuY29tL3dzLzIwMTkvMDgvaWRlbnRpdHkvY2xhaW1zL3N1YnNjcmliZXIiOiJUcnVlIiwiaHR0cDovL3NjaGVtYXMuZG5kYmV5b25kLmNvbS93cy8yMDE5LzA4L2lkZW50aXR5L2NsYWltcy9zdWJzY3JpcHRpb250aWVyIjoiTWFzdGVyIiwibmJmIjoxNjcxNTY2OTA1LCJleHAiOjE2NzE1NjcyMDUsImlzcyI6ImRuZGJleW9uZC5jb20iLCJhdWQiOiJkbmRiZXlvbmQuY29tIn0.o4YeFV72HiU1zwaXyBjfpFQ8f98f_VVMdo9-XtgXDuE
+

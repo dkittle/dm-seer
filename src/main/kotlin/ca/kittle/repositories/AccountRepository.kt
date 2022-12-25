@@ -52,21 +52,6 @@ class AccountRepository {
         }
     }
 
-//    suspend fun getUserByEmail(email: String): User? = dbQuery {
-//        Users.select {
-//            (Users.email eq email)
-//        }.mapNotNull { toUser(it) }
-//            .singleOrNull()
-//    }
-//
-//    private fun toUser(row: ResultRow): User =
-//        User(
-//            id = row[Users.id],
-//            email = row[Users.email],
-//            active = row[Users.active],
-//            password = row[Users.password]
-//        )
-
     private fun toAccount(a: AccountDO?): Account? {
         return if (a == null) null else Account(a.id.value, a.username, a.password, a.email, a.active)
     }
@@ -78,16 +63,6 @@ class AccountRepository {
             row[VttAccounts.vttId],
             row[VttAccounts.vttKey]
         )
-
-
-
-//    val email = URLDecoder.decode("email", "UTF-8")
-//    val phone = URLDecoder.decode("phone", "UTF-8")
-//
-//    Users.find {
-//        if (email != null) (Users.email eq email) else Op.TRUE
-//            .and(if (phone != null) (Users.phone eq phone) else Op.TRUE)
-//    }
 
     companion object {
         private val logger = KotlinLogging.logger {}

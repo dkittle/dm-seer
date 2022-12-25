@@ -13,7 +13,6 @@ import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-val ddbProxy = DdbProxy(System.getenv("COBALT_TOKEN"))
 val NO_SESSION = "No user session"
 val NO_COBALT = "No DDB cobalt key configured"
 
