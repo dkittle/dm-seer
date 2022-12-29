@@ -221,3 +221,4 @@ INSERT INTO sources(label, description, account_id, official, avatar_url)
 ('SotDQ', 'Dragonlance: Shadow of the Dragon Queen', 1, true, 'https://www.dndbeyond.com/avatars/27777/666/637951679601337771.jpeg'),
 ('One-DnD', 'One D&D Playtest', 1, true, 'https://www.dndbeyond.com/avatars/28133/674/637963577590732420.jpeg'),
 ('MCv2', 'Monstrous Compendium Volume Two: Dragonlance Creatures', 1, true, 'https://www.dndbeyond.com/avatars/30591/814/638054153540284547.jpeg');
+

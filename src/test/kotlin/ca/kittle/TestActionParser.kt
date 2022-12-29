@@ -1,9 +1,8 @@
 package ca.kittle
 
-import ca.kittle.models.Action
+import ca.kittle.models.Feature
 import ca.kittle.models.AttackAction
-import ca.kittle.models.RollableAction
-import ca.kittle.models.SpellCastingTrait
+import ca.kittle.models.RollableFeature
 import ca.kittle.util.ActionParser
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,7 +19,7 @@ class TestActionParser {
         assertEquals(3, actions.size)
         assertEquals(true, actions[0] is AttackAction)
         assertEquals(true, actions[1] is AttackAction)
-        assertEquals(true, actions[2] is Action)
+        assertEquals(true, actions[2] is Feature)
     }
 
     @Test
@@ -30,11 +29,11 @@ class TestActionParser {
         """.trimIndent()
         val actions = ActionParser.parseActions(input)
         assertEquals(5, actions.size)
-        assertEquals(true, actions[0] is Action)
+        assertEquals(true, actions[0] is Feature)
         assertEquals(true, actions[1] is AttackAction)
         assertEquals(true, actions[2] is AttackAction)
-        assertEquals(true, actions[3] is Action)
-        assertEquals(true, actions[4] is RollableAction)
+        assertEquals(true, actions[3] is Feature)
+        assertEquals(true, actions[4] is RollableFeature)
     }
 
     @Test
@@ -44,8 +43,8 @@ class TestActionParser {
         """.trimIndent()
         val actions = ActionParser.parseActions(input)
         assertEquals(3, actions.size)
-        assertEquals(true, actions[0] is Action)
-        assertEquals(true, actions[1] is RollableAction)
-        assertEquals(true, actions[2] is Action)
+        assertEquals(true, actions[0] is Feature)
+        assertEquals(true, actions[1] is RollableFeature)
+        assertEquals(true, actions[2] is Feature)
     }
 }

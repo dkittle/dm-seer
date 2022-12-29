@@ -4,21 +4,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class BaseCreatureSpells {
-    abstract var uses: Int
-    abstract var spells: List<String>
+data class SpellUses(val order: Int, val uses: Int, val spells: List<String>) {
+    companion object {
+        fun create(order: Int, uses:Int, spells: String) =
+            SpellUses(order, uses,
+                spells.split(",").map { it.replace("*","")}.map { it.trim() })
+    }
 }
 
-@Serializable
-@SerialName("usesEachPerDaySpells")
-data class PerDaySpells (
-    override var uses: Int,
-    override var spells: List<String>
-) : BaseCreatureSpells()
 
-@Serializable
-@SerialName("spellSlotsPerDaySpells")
-data class SpellSlotSpells (
-    override var uses: Int,
-    override var spells: List<String>
-) : BaseCreatureSpells()
+//@Serializable
+//@SerialName("usesPerDaySpells")
+//data class PerDaySpells (
+//    override var uses: Int,
+//    override var spells: List<String>
+//) : BaseSpells()
+//
+//@Serializable
+//@SerialName("spellSlotsPerDaySpells")
+//data class SpellSlotSpells (
+//    override var uses: Int,
+//    override var spells: List<String>
+//) : BaseSpells()

@@ -2,12 +2,13 @@ package ca.kittle.repositories
 
 import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
+import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
 import org.mindrot.jbcrypt.BCrypt
 
-class AccountRepository {
+object AccountDao {
     private val logger = KotlinLogging.logger {}
 
     suspend fun getAccountByUsername(username: String): Account? = dbQuery {
@@ -35,20 +36,25 @@ class AccountRepository {
             .singleOrNull()
     }
 
-    suspend fun vttAccount(accountId: Int, newVttAccount: NewVttAccount): Int = dbQuery {
+    suspend fun vttAccount(accountId: Int, vttKey: String): Int {
+        val token = DdbProxy(0, vttKey).authenticate()
+        val id = getDdbIdFromCobaltToken(token)
+        createVttAccount(accountId, "DDB", id, vttKey)
+        return id
+    }
+
+    suspend fun createVttAccount(accountId: Int, ddbName: String, ddbId: Int, ddbKey: String): Int = dbQuery {
         val old = VttAccounts.select { (VttAccounts.account eq accountId) and (VttAccounts.vttName eq "DDB") }
             .mapNotNull { toVttAccount(it) }
             .singleOrNull()
             ?: return@dbQuery VttAccounts.insertAndGetId {
                 it[account] = accountId
-                it[vttName] = newVttAccount.vttName
-                it[vttId] = newVttAccount.vttId
-                it[vttKey] = newVttAccount.vttKey
+                it[vttName] = ddbName
+                it[vttId] = ddbId
+                it[vttKey] = ddbKey
             }.value
         return@dbQuery VttAccounts.update( { VttAccounts.id eq old.id }) {
-            it[vttName] = newVttAccount.vttName
-            it[vttId] = newVttAccount.vttId
-            it[vttKey] = newVttAccount.vttKey
+            it[vttKey] = ddbKey
         }
     }
 
@@ -64,7 +70,4 @@ class AccountRepository {
             row[VttAccounts.vttKey]
         )
 
-    companion object {
-        private val logger = KotlinLogging.logger {}
-    }
 }

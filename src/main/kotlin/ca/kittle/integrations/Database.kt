@@ -28,7 +28,23 @@ object Database {
         logger.info {"Initializing database" }
         transaction {
             addLogger(StdOutSqlLogger)
-            SchemaUtils.create(Accounts, VttAccounts, Campaigns, CampaignOrigins, Encounters, Locations, Rooms, DndSources, Encounters, Combats, Combatants, Creatures, Characters)
+            SchemaUtils.drop(Campaigns, CampaignOrigins,
+                Encounters, EncounterOrigins, Locations, Rooms, Combats, Combatants,
+                Creatures, CreatureOrigins, Characters, CharacterOrigins, CreatureEnvironments,
+                CreatureStats, CreatureSaves, CreatureSkills, CreatureSenses, CreatureMovements,
+                MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
+                CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
+                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
+                CreatureConditionImmunities)
+
+            SchemaUtils.create(Campaigns, CampaignOrigins,
+                Encounters, EncounterOrigins, Locations, Rooms, Combats, Combatants,
+                Creatures, CreatureOrigins, Characters, CharacterOrigins, CreatureEnvironments,
+                CreatureStats, CreatureSaves, CreatureSkills, CreatureSenses, CreatureMovements,
+                MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
+                CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
+                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
+                CreatureConditionImmunities)
             commit()
             logger.debug {"Schema created" }
         }

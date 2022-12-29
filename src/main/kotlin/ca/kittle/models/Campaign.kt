@@ -47,12 +47,12 @@ class CampaignDO(id: EntityID<Int>): IntEntity(id) {
 object CampaignOrigins : IntIdTable("campaign_origins") {
     val originId = integer("origin_id")
     val originName = text("origin_name")
-    val campaign = reference("campaign_id", Campaigns)
+    val campaignId = reference("campaign_id", Campaigns)
 }
 
-class CampaignOriginsDO(id: EntityID<Int>): IntEntity(id) {
-    companion object : IntEntityClass<CampaignOriginsDO>(CampaignOrigins)
+class CampaignOriginDO(id: EntityID<Int>): IntEntity(id) {
+    companion object : IntEntityClass<CampaignOriginDO>(CampaignOrigins)
     var originId by CampaignOrigins.originId
     var originName by CampaignOrigins.originName
-    var campaignId by CampaignDO referencedOn CampaignOrigins.campaign
+    var campaignId by CampaignDO referencedOn CampaignOrigins.campaignId
 }

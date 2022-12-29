@@ -2,7 +2,7 @@ package ca.kittle.routes
 
 import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.UserSession
-import ca.kittle.repositories.CampaignRepository
+import ca.kittle.repositories.CampaignDao
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,7 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-val campaignRepository = CampaignRepository()
+
 
 fun Route.campaignRouting() {
 
@@ -26,7 +26,7 @@ fun Route.campaignRouting() {
                     status = HttpStatusCode.BadRequest
                 )
                 if (vttId > 0)
-                    campaignRepository.cacheCampaigns(campaigns.filter { it.dmId.toInt() == vttId }, accountId)
+                    CampaignDao.cacheCampaigns(campaigns.filter { it.dmId.toInt() == vttId }, accountId)
                 call.respond(campaigns)
             }
         }

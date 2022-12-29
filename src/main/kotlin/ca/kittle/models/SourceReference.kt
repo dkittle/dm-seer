@@ -8,11 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 
 @Serializable
-data class SourceReference(val sourceId: Int, val pageNumber: Int) {
-    override fun toString(): String {
-        return "${Sources.getSourceById(sourceId).label}, page $pageNumber"
-    }
-}
+data class SourceReference(val source: String, val pageNumber: Int)
 
 
 object DndSources : IntIdTable("sources") {

@@ -3,8 +3,7 @@ package ca.kittle.routes
 import ca.kittle.integrations.DdbProxy
 import ca.kittle.integrations.mapping.DdbCreature
 import ca.kittle.models.UserSession
-import ca.kittle.repositories.CreatureRepository
-import ca.kittle.repositories.EncounterRepository
+import ca.kittle.repositories.CreatureDao
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -12,7 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-val creatureRepository = CreatureRepository()
 val mapping = DdbCreature()
 
 fun Route.creatureRouting() {
@@ -30,9 +28,19 @@ fun Route.creatureRouting() {
 //        }
 //    }
     authenticate {
+
         route("/api/creature") {
+            get("/{id?}") {
+                val id = call.parameters["id"] ?: return@get call.respondText(
+                    "Missing encounter id",
+                    status = HttpStatusCode.BadRequest
+                )
+                val creature = CreatureDao.getCreature(id.toInt())
+                    ?: return@get call.respondText("No creature found with id $id", status = HttpStatusCode.NotFound)
+                call.respond(creature)
+            }
             get("/ddb/{id?}") {
-                val (_, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+                val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 if (vttKey.isBlank())
                     return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
@@ -51,8 +59,8 @@ fun Route.creatureRouting() {
                         status = HttpStatusCode.BadRequest
                     )
                 ddbProxy.cacheAvatars(creature)
+                CreatureDao.cacheCreatureFromDdb(creature, accountId)
                 val new = mapping.createCreature(creature)
-//                creatureRepository.createCreature(new, "DDB", creature.id)
                 call.respond(new)
             }
             get("/ddb/search/{term?}") {
@@ -73,13 +81,5 @@ fun Route.creatureRouting() {
             }
         }
     }
-
-//        get("/{id?}") {
-//            val id = call.parameters["id"] ?:
-//            return@get call.respondText("Missing encounter id", status = HttpStatusCode.BadRequest)
-//            val encounter = encounterRepository.encounter(id.toLong(), null) ?:
-//            return@get call.respondText("No encounter found with id $id", status = HttpStatusCode.NotFound)
-//            call.respond(encounter)
-//        }
 
 }

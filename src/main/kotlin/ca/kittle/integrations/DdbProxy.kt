@@ -64,7 +64,7 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
         }
     }
 
-    private suspend fun authenticate(): String {
+    suspend fun authenticate(): String {
         val (cobaltToken, cobaltTokenTtl) = getCobaltSession(ddbId)
         if (System.currentTimeMillis() > cobaltTokenTtl || cobaltToken.isEmpty()) {
             logger.debug { "Getting auth token from ddb" }
@@ -75,6 +75,8 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
                     append(HttpHeaders.Cookie, "CobaltSession=$cobaltSession")
                 }
             }
+            val tmp: String = response.body()
+            logger.debug { tmp }
             val result: DdbAuthResponse = response.body()
             val ttl = if (result.ttl < 5*60*1000) 5*60*1000 else result.ttl
             storeToken(ddbId, result.token, System.currentTimeMillis() + (ttl * .85).toLong())
@@ -526,16 +528,6 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
 
     companion object {
         private val logger = KotlinLogging.logger {}
-
-        fun getDdbIdFromCobaltKey(ddbKey: String): Long {
-            val decoder = Base64.getDecoder()
-            var m = Pattern.compile("(.*?)\\.(.*?)\\.").matcher(ddbKey)
-            val userDetails = if (m.find()) m.group(2) else ""
-            val jwt = decoder.decode(userDetails)
-            m = Pattern.compile("nameidentifier\":\"(\\d*?)\"").matcher(String(jwt))
-            return if (m.find()) m.group(1)?.toLong() ?: 0  else 0
-        }
-
 
         private val keyMap = object : LinkedHashMap<Int, CobaltSession>(200, .75f, true) {
             override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, CobaltSession>): Boolean {

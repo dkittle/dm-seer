@@ -7,10 +7,10 @@ import java.util.regex.Pattern
 
 @Serializable
 data class Dice(
-    val diceCount: Int?,
-    val diceValue: Int?,
-    val diceMultiplier: Int?,
-    val fixedValue: Int?,
+    val diceCount: Int? = null,
+    val diceValue: Int? = null,
+    val diceMultiplier: Int? = null,
+    val fixedValue: Int? = null,
     var diceString: String? = ""
 ) {
 

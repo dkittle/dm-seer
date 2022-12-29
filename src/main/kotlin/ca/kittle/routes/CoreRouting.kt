@@ -23,12 +23,12 @@ fun Route.coreRouting() {
         call.respondText("D&D is for everyone.", status = HttpStatusCode.OK)
     }
 
-    authenticate {
+//    authenticate {
         post("/api/db") {
             Database.initDb()
             call.respond(HttpStatusCode.OK, OK)
         }
-    }
+//    }
 
     get("/api/health") {
         call.respond(HttpStatusCode.OK, OK)

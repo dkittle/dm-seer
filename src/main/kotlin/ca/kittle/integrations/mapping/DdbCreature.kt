@@ -1,5 +1,6 @@
 package ca.kittle.integrations.mapping
 
+import ca.kittle.integrations.Database
 import ca.kittle.models.*
 import ca.kittle.util.ActionParser
 import ca.kittle.util.TraitParser
@@ -40,12 +41,14 @@ class DdbCreature {
                 ddb.hitPointDice.diceMultiplier,
                 ddb.hitPointDice.fixedValue,
                 ddb.hitPointDice.diceString),
-            ChallengeRating.getChallengeRatingById(ddb.challengeRatingId)?.name ?: "0",
-            ddb.swarm,
+            ChallengeRatings.getChallengeRatingById(ddb.challengeRatingId)?.name ?: "0",
+            ddb.swarm?.name,
+            Sizes.getSizeById(ddb.swarm?.sizeId ?: 0).label,
+            CreatureTypes.getCreatureTypeById(ddb.swarm?.typeId ?: -1)?.label,
             ddb.armorClass,
             ddb.armorClassDescription.trim(),
             ddb.movements.map {move ->
-                    "${Movements.getMovementById(move.movementId)?.label ?: "unknown"} ${move.speed} ft."
+                    CreatureSpeed(Movements.getMovementById(move.movementId), move.speed, move.notes ?: "")
                 },
             ddb.senses.map { sense ->
                     "${Senses.getSenseById(sense.senseId)?.label ?: "unknown"} ${sense.notes}"
@@ -63,7 +66,7 @@ class DdbCreature {
             ddb.passivePerception,
             ddb.isHomebrew,
             ddb.sources.map {
-                SourceReference(it.sourceId, it.pageNumber ?: 0)
+                SourceReference(Sources.getSourceById(it.sourceId).description, it.pageNumber ?: 0)
                 },
             ddb.isLegacy,
             ddb.isLegendary,
@@ -105,7 +108,9 @@ class DdbCreature {
             ActionParser.parseActions(ddb.legendaryActionsDescription),
             ActionParser.parseDescription(ddb.mythicActionsDescription ?: ""),
             ActionParser.parseDescription(ddb.legendaryActionsDescription),
-            ddb.tags
+            ddb.tags,
+            Database.now,
+            Database.now
         )
     }
 

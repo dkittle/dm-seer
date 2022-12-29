@@ -2,22 +2,16 @@ package ca.kittle.repositories
 
 import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
-import ca.kittle.models.Campaign
-import ca.kittle.models.CampaignOrigins
-import ca.kittle.models.Campaigns
-import ca.kittle.models.VttAccounts
+import ca.kittle.models.*
 import ca.kittle.models.integrations.DdbCampaign
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.util.*
 import java.util.regex.Pattern
 
-class CampaignRepository {
+object CampaignDao {
     private val logger = KotlinLogging.logger {}
-
 
     suspend fun campaign(campaign: Campaign, accountId: Int): Int = dbQuery {
         val old = Campaigns.select { Campaigns.id eq campaign.id }
@@ -45,10 +39,14 @@ class CampaignRepository {
         }
     }
 
+    suspend fun findCampaignIdByOrigin(originId: Int): Int? = dbQuery {
+        CampaignOriginDO.find { CampaignOrigins.originId eq originId }.firstOrNull()?.campaignId?.id?.value
+    }
+
     /**
      * These functions cache data from DDB
      */
-    suspend fun cacheCampaigns(campaigns: List<DdbCampaign>, accountId: Int) = dbQuery {
+    suspend fun cacheCampaigns(campaigns: List<DdbCampaign>, accountId: Int) {
         campaigns.forEach { campaign ->
             val i = campaignFromDdb(campaign, accountId)
             if (i > 0)
@@ -56,11 +54,11 @@ class CampaignRepository {
         }
     }
 
-    fun campaignFromDdb(campaign: DdbCampaign, accountId: Int): Int {
+    suspend fun campaignFromDdb(campaign: DdbCampaign, accountId: Int): Int = dbQuery {
         CampaignOrigins.select { CampaignOrigins.originId eq campaign.id.toInt() }
             .mapNotNull { it }
             .singleOrNull()
-            ?: return Campaigns.insertAndGetId {
+            ?: return@dbQuery Campaigns.insertAndGetId {
                 it[name] = campaign.name
                 it[splashUrl] = campaign.splashUrl
                 it[description] = ""
@@ -71,20 +69,19 @@ class CampaignRepository {
                 it[updatedOn] = Database.now
                 it[dmId] = accountId
             }.value
-        return 0
+        return@dbQuery 0
     }
 
 
-    fun campaignOrigin(campaignId: Int, vttId: Int): Int {
-        CampaignOrigins.select { CampaignOrigins.campaign eq campaignId }
+    suspend fun campaignOrigin(newCampaignId: Int, vttId: Int) = dbQuery {
+        CampaignOrigins.select { CampaignOrigins.campaignId eq newCampaignId }
             .mapNotNull { it }
             .singleOrNull()
-            ?: return CampaignOrigins.insertAndGetId {
+            ?: CampaignOrigins.insert {
                 it[originId] = vttId
                 it[originName] = "DDB"
-                it[campaign] = campaignId
-            }.value
-        return 0
+                it[campaignId] = newCampaignId
+            }
     }
 
     private fun parseDdbDate(date: String): LocalDateTime {

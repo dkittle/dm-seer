@@ -1,5 +1,12 @@
 package ca.kittle.models
 
+import ca.kittle.models.Combatants.nullable
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.kotlin.datetime.datetime
+
 class CharacterSpeciess {
     companion object {
         fun getCharacterSpeciesById(id: Int): CharacterSpecies? {
@@ -90,6 +97,7 @@ class DamageTypes {
         fun getDamageTypeByName(input: String): DamageType {
             return DamageType.values().filter { it.name.equals(input.uppercase()) }.getOrNull(0) ?: DamageType.UNKNOWN
         }
+        fun isNonWeapon(dam: DamageType) = dam.id in 4..19
     }
 }
 
@@ -119,9 +127,61 @@ enum class DamageType(val id: Int, val label: String) {
     RANGED(41, "Ranged attacks"),
     WEAPONS(42, "Weapons"),
     SPELLS(43, "Spells"),
+    HEALING(80, "Healing"),
+    NONE(97, "None"),
     ALL(98, "All"),
     UNKNOWN(99, "Unknown")
 }
+
+object ChallengeRatings {
+    fun getChallengeRatingById(id: Int): ChallengeRating? =
+        ChallengeRating.values().filter { it.id == id }.singleOrNull()
+
+    fun getChallengeRatingByLabel(label: String): ChallengeRating? =
+        ChallengeRating.values().filter {
+            it.label.lowercase() == label.lowercase() ||
+                    it.name.lowercase() == label.lowercase()
+        }.singleOrNull()
+}
+
+enum class ChallengeRating(val id: Int, val label: String, val cr: Float) {
+    ZERO(1, "0", 0f),
+    ONEEIGHTH(2, "1/8", 0.125f),
+    ONEQUARTER(3, "1/4", 0.25f),
+    ONEHALF(4, "1/2", 0.5f),
+    CR1(5, "1", 1f),
+    CR2(6, "2", 2f),
+    CR3(7, "3", 3f),
+    CR4(8, "4", 4f),
+    CR5(9, "5", 5f),
+    CR6(10, "6", 6f),
+    CR7(11, "7", 7f),
+    CR8(12, "8", 8f),
+    CR9(13, "9", 9f),
+    CR10(14, "10", 10f),
+    CR11(15, "11", 11f),
+    CR12(16, "12", 12f),
+    CR13(17, "13", 13f),
+    CR14(18, "14", 14f),
+    CR15(19, "15", 15f),
+    CR16(20, "16", 16f),
+    CR17(21, "17", 17f),
+    CR18(22, "18", 18f),
+    CR19(23, "19", 19f),
+    CR20(24, "20", 20f),
+    CR21(25, "21", 21f),
+    CR22(26, "22", 22f),
+    CR23(27, "23", 23f),
+    CR24(28, "24", 24f),
+    CR25(29, "25", 25f),
+    CR26(30, "26", 26f),
+    CR27(31, "27", 27f),
+    CR28(32, "28", 28f),
+    CR29(33, "29", 29f),
+    CR30(34, "30", 30f)
+}
+
+
 
 class CreatureSubTypes {
     companion object {
@@ -289,7 +349,7 @@ enum class CreatureGroupCategory(val id: Int, val label: String) {
 class CreatureTypes {
     companion object {
         fun getCreatureTypeById(id: Int): CreatureType? {
-            return CreatureType.values().filter { it.id == id }.getOrNull(0)
+            return CreatureType.values().filter { it.id == id }.singleOrNull()
         }
     }
 }
@@ -532,23 +592,25 @@ enum class SpellComponent(val id: Int, val label: String, val shortName: String,
 
 class ActivationTypes {
     companion object {
-        fun getActivationTypeById(id: Int): ActivationType? {
-            return when (id) {
-                in 1.. ActivationType.values().size -> ActivationType.values()[id - 1]
-                else -> null
-            }
-        }
+        fun getActivationTypeById(id: Int): ActivationType =
+            ActivationType.values().filter { it.id == id }
+                .singleOrNull() ?: ActivationType.UNKNOWN
     }
 }
 
-enum class ActivationType(val id: Int, val label: String, val prerequisite: Int?, val description: String, val requiredLevel: Int?, val displayOrder: Int?) {
-    ACTION(1, "Action", null, "", null, null),
-    NOACTION(2, "No Action", null, "", null, null),
-    BONUSACTION(3, "Bonus Action", null, "", null, null),
-    REACTION(4, "Reaction", null, "", null, null),
-    MINUTE(6, "Minute", null, "", null, null),
-    HOUR(7, "Hour", null, "", null, null),
-    SPECIAL(8, "Special", null, "", null, null)
+enum class ActivationType(val id: Int, val label: String) {
+    ACTION(1, "Action"),
+    NOACTION(2, "No Action"),
+    BONUSACTION(3, "Bonus Action"),
+    REACTION(4, "Reaction"),
+    MINUTE(6, "Minute"),
+    HOUR(7, "Hour"),
+    SPECIAL(8, "Special"),
+    MYTHIC(90, "Mythic Action"),
+    LEGENDARY(91, "Legendary Action"),
+    ELITE(92, "Elite Action"),
+    NONE(98, "Not applicable"),
+    UNKNOWN(98, "Unknown")
 }
 
 class BasicActions {
@@ -581,6 +643,35 @@ enum class BasicAction(val id: Int, val label: String, val description: String, 
     IMPROVISE(1004, "Improvise", "Your character can do things not covered by the actions in this chapter, such as breaking down doors, intimidating enemies, sensing weaknesses in magical defenses, or calling for a parley with a foe. The only limits to the actions you can attempt are your imagination and your character's ability scores. See the descriptions of the ability scores in chapter 7 for inspiration as you improvise.When you describe an action not detailed elsewhere in the rules, the DM tells you whether that action is possible and what kind of roll you need to make, if any, to determine success or failure.", Activation(0, 1)),
     TWOWEAPONFIGHTING(1005, "Two-Weapon Fighting", "When you take the Attack action and attack with a light melee weapon that you're holding in one hand, you can use a bonus action to attack with a different light melee weapon that you're holding in the other hand. You don't add your ability modifier to the damage of the bonus attack, unless that modifier is negative.If either weapon has the thrown property, you can throw the weapon, instead of making a melee attack with it.", Activation(0, 3)),
     INTERACTWITHANOBJECT(1006, "Interact with an Object", "Here are a few examples of the sorts of thing you can do in tandem with your movement and action:draw or sheathe a swordopen or close a doorwithdraw a potion from your backpackpick up a dropped axetake a bauble from a tableremove a ring from your fingerstuff some food into your mouthplant a banner in the groundfish a few coins from your belt pouchdrink all the ale in a flagonthrow a lever or a switchpull a torch from a sconcetake a book from a shelf you can reachextinguish a small flamedon a maskpull the hood of your cloak up and over your headput your ear to a doorkick a small stoneturn a key in a locktap the floor with a 10-foot polehand an item to another character", Activation(0, 8))
+}
+
+class Conditions {
+    companion object {
+        fun getConditionById(id: Int): Condition =
+            Condition.values().filter { it.id == id }.singleOrNull() ?: Condition.NONE
+        fun getConditionByName(name: String): Condition? =
+            Condition.values().filter { it.name.lowercase().equals(name.lowercase())}.singleOrNull()
+    }
+}
+
+
+enum class Condition(val id: Int, val label: String, val description: String){
+    BLINDED(1, "Blinded", "A blinded creature can't see and automatically fails any ability check that requires sight.Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage."),
+    CHARMED(2, "Charmed","A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects.The charmer has advantage on any ability check to interact socially with the creature.",),
+    DEAFENED(3, "Deafened","A deafened creature can't hear and automatically fails any ability check that requires hearing.",),
+    EXHAUSTION(4, "Exhaustion","<p>Some special abilities and environmental hazards, such as starvation and the long-term effects of freezing or scorching temperatures, can lead to a special condition called exhaustion. Exhaustion is measured in six levels. An effect can give a creature one or more levels of exhaustion, as specified in the effect's description.</p>\n<table class=\"exhaustion-levels\">\n<thead>\n<tr>\n<th class=\"exhaustionlevel\">Level</th>\n<th>Effect</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>1</td>\n<td style=\"text-align: left\">Disadvantage on ability checks</td>\n</tr>\n<tr>\n<td>2</td>\n<td style=\"text-align: left\">Speed halved</td>\n</tr>\n<tr>\n<td>3</td>\n<td style=\"text-align: left\">Disadvantage on attack rolls and saving throws</td>\n</tr>\n<tr>\n<td>4</td>\n<td style=\"text-align: left\">Hit point maximum halved</td>\n</tr>\n<tr>\n<td>5</td>\n<td style=\"text-align: left\">Speed reduced to 0</td>\n</tr>\n<tr>\n<td>6</td>\n<td style=\"text-align: left\">Death</td>\n</tr>\n</tbody>\n</table>\n<p>If an already exhausted creature suffers another effect that causes exhaustion, its current level of exhaustion increases by the amount specified in the effect's description.</p>\n<p>A creature suffers the effect of its current level of exhaustion as well as all lower levels. For example, a creature suffering level 2 exhaustion has its speed halved and has disadvantage on ability checks.</p>\n<p>An effect that removes exhaustion reduces its level as specified in the effect's description, with all exhaustion effects ending if a creature's exhaustion level is reduced below 1. <br> Finishing a long rest reduces a creature's exhaustion level by 1, provided that the creature has also ingested some food and drink.</p>",),
+    FRIGHTENED(5, "Frightened", "A frightened creature has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight.The creature can't willingly move closer to the source of its fear.",),
+    GRAPPLED(6, "Grappled", "A grappled creature's speed becomes 0, and it can't benefit from any bonus to its speed.The condition ends if the grappler is incapacitated (see the condition).The condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect, such as when a creature is hurled away by the <strong>thunder-wave</strong> spell.",),
+    INCAPACITATED(7, "Incapacitated", "An incapacitated creature can't take actions or reactions."),
+    INVISIBLE(8, "Invisible", "An invisible creature is impossible to see without the aid of magic or a special sense. For the purpose of hiding, the creature is heavily obscured. The creature's location can be detected by any noise it makes or any tracks it leaves. Attack rolls against the creature have disadvantage, and the creature's attack rolls have advantage.",),
+    PARALYZED(9, "Paralyzed", "A paralyzed creature is incapacitated (see the condition) and can't move or speak.The creature automatically fails Strength and Dexterity saving throws. Attack rolls against the creature have advantage.Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.",),
+    PETRIFIED(10, "Petrified", "A petrified creature is transformed, along with any nonmagical object it is wearing or carrying, into a solid inanimate substance (usually stone). Its weight increases by a factor of ten, and it ceases aging.The creature is incapacitated (see the condition), can't move or speak, and is unaware of its surroundings.Attack rolls against the creature have advantage.The creature automatically fails Strength and Dexterity saving throws.The creature has resistance to all damage.The creature is immune to poison and disease, although a poison or disease already in its system is suspended, not neutralized.",),
+    POISONED(11, "Poisoned", "A poisoned creature has disadvantage on attack rolls and ability checks."),
+    PRONE(12, "Prone", "A prone creature's only movement option is to crawl, unless it stands up and thereby ends the condition.The creature has disadvantage on attack rolls.An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage.",),
+    RESTRAINED(13, "Restrained", "A restrained creature's speed becomes 0, and it can't benefit from any bonus to its speed.Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.The creature has disadvantage on Dexterity saving throws.",),
+    STUNNED(14, "Stunned", "A stunned creature is incapacitated (see the condition), can't move, and can speak only falteringly.The creature automatically fails Strength and Dexterity saving throws.Attack rolls against the creature have advantage.",),
+    UNCONSCIOUS(15, "Unconscious", "An unconscious creature is incapacitated (see the condition), can't move or speak, and is unaware of its surroundingsThe creature drops whatever it's holding and falls prone.The creature automatically fails Strength and Dexterity saving throws.Attack rolls against the creature have advantage.Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.",),
+    NONE(99, "None", "")
 }
 
 class Rules {
@@ -980,7 +1071,7 @@ enum class DamageAdjustment(val id: Int, val label: String, val type: DamageAdju
 class Alignments {
     companion object {
         fun getAlignmentById(id: Int): Alignment? {
-            return Alignment.values().filter { it.id == id}.getOrNull(0)
+            return Alignment.values().filter { it.id == id}.get(0) ?: Alignment.UNALIGNED
         }
     }
 }
@@ -1111,6 +1202,7 @@ class Stats {
                 else -> null
             }
         }
+        fun getStatByStatName(name: String): Stat = Stat.valueOf(name.uppercase())
     }
 }
 
@@ -1122,6 +1214,29 @@ enum class Stat(val id: Int, val label: String, val entityTypeId: Int, val key: 
     WISDOM(5, "Wisdom", 1472902489, "WIS", "Wisdom reflects how attuned you are to the world around you and represents perceptiveness and intuition.Wisdom ChecksA Wisdom check might reflect an effort to read body language, understand someone’s feelings, notice things about the environment, or care for an injured person. The Animal Handling, Insight, Medicine, Perception, and Survival skills reflect aptitude in certain kinds of Wisdom checks.Animal HandlingWhen there is any question whether you can calm down a domesticated animal, keep a mount from getting spooked, or intuit an animal’s intentions, the DM might call for a Wisdom (Animal Handling) check. You also make a Wisdom (Animal Handling) check to control your mount when you attempt a risky maneuver.InsightYour Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone’s next move. Doing so involves gleaning clues from body language, speech habits, and changes in mannerisms.MedicineA Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness.PerceptionYour Wisdom (Perception) check lets you spot, hear, or otherwise detect the presence of something. It measures your general awareness of your surroundings and the keenness of your senses. For example, you might try to hear a conversation through a closed door, eavesdrop under an open window, or hear monsters moving stealthily in the forest. Or you might try to spot things that are obscured or easy to miss, whether they are orcs lying in ambush on a road, thugs hiding in the shadows of an alley, or candlelight under a closed secret door.FINDING A HIDDEN OBJECTWhen your character searches for a hidden object such as a secret door or a trap, the DM typically asks you to make a Wisdom (Perception) check. Such a check can be used to find hidden details or other information and clues that you might otherwise overlook.In most cases, you need to describe where you are looking in order for the DM to determine your chance of success. For example, a key is hidden beneath a set of folded clothes in the top drawer of a bureau. If you tell the DM that you pace around the room, looking at the walls and furniture for clues, you have no chance of finding the key, regardless of your Wisdom (Perception) check result. You would have to specify that you were opening the drawers or searching the bureau in order to have any chance of success.SurvivalThe DM might ask you to make a Wisdom (Survival) check to follow tracks, hunt wild game, guide your group through frozen wastelands, identify signs that owlbears live nearby, predict the weather, or avoid quicksand and other natural hazards.Other Wisdom ChecksThe DM might call for a Wisdom check when you try to accomplish tasks like the following:Get a gut feeling about what course of action to followDiscern whether a seemingly dead or living creature is undeadSpellcasting AbilityClerics, druids, and rangers use Wisdom as their spellcasting ability, which helps determine the saving throw DCs of spells they cast."),
     CHARISMA(6, "Charisma", 1472902489, "CHA", "Charisma measures your ability to interact effectively with others. It includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.Charisma ChecksA Charisma check might arise when you try to influence or entertain others, when you try to make an impression or tell a convincing lie, or when you are navigating a tricky social situation. The Deception, Intimidation, Performance, and Persuasion skills reflect aptitude in certain kinds of Charisma checks.DeceptionYour Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions. This deception can encompass everything from misleading others through ambiguity to telling outright lies. Typical situations include trying to fast-talk a guard, con a merchant, earn money through gambling, pass yourself off in a disguise, dull someone's suspicions with false assurances, or maintain a straight face while telling a blatant lie.IntimidationWhen you attempt to influence someone through overt threats, hostile actions, and physical violence, the DM might ask you to make a Charisma (Intimidation) check. Examples include trying to pry information out of a prisoner, convincing street thugs to back down from a confrontation, or using the edge of a broken bottle to convince a sneering vizier to reconsider a decision.PerformanceYour Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment.PersuasionWhen you attempt to influence someone or a group of people with tact, social graces, or good nature, the DM might ask you to make a Charisma (Persuasion) check. Typically, you use persuasion when acting in good faith, to foster friendships, make cordial requests, or exhibit proper etiquette. Examples of persuading others include convincing a chamberlain to let your party see the king, negotiating peace between warring tribes, or inspiring a crowd of townsfolk.Other Charisma ChecksThe DM might call for a Charisma check when you try to accomplish tasks like the following:Find the best person to talk to for news, rumors, and gossipBlend into a crowd to get the sense of key topics of conversationSpellcasting AbilityBards, paladins, sorcerers, and warlocks use Charisma as their spellcasting ability, which helps determine the saving throw DCs of spells they cast.")
 }
+
+class SavingThrows {
+    companion object {
+        fun getSavingThrowById(id: Int): SavingThrow? {
+            return when (id) {
+                in 1.. SavingThrow.values().size -> SavingThrow.values()[id - 1]
+                else -> null
+            }
+        }
+        fun getSavingThrowBySavingThrowName(name: String): SavingThrow =
+            SavingThrow.valueOf(name.uppercase())
+    }
+}
+
+enum class SavingThrow(val id: Int, val label: String, val ability: Int, val key: String) {
+    STRENGTH(1, "Strength", 1, "STR"),
+    DEXTERITY(2, "Dexterity", 2, "DEX"),
+    CONSTITUTION(3, "Constitution", 3, "CON"),
+    INTELLIGENCE(4, "Intelligence", 4, "INT"),
+    WISDOM(5, "Wisdom", 5, "WIS"),
+    CHARISMA(6, "Charisma", 6, "CHA")
+}
+
 
 class Skills {
     companion object {
@@ -1174,8 +1289,8 @@ enum class Sense(val id: Int, val label: String, val entityTypeId: Int) {
 
 class Sizes {
     companion object {
-        fun getSizeById(id: Int): Size? {
-            return Size.values().filter { it.id == id }.getOrNull(0)
+        fun getSizeById(id: Int): Size {
+            return Size.values().filter { it.id == id }.singleOrNull() ?: Size.UNKNOWN
         }
     }
 }
@@ -1187,16 +1302,19 @@ enum class Size(val id: Int, val label: String, val entityTypeId: Int, val weigh
     LARGE(5, "Large", 127108918, 3),
     HUGE(6, "Huge", 127108918, 3),
     GARGANTUAN(7, "Gargantuan", 127108918, 3),
-    MEDIUMORSMALL(10, "Medium or Small", 127108918, 2)
+    MEDIUMORSMALL(10, "Medium or Small", 127108918, 2),
+    UNKNOWN(99, "unknown", 0, 1)
 }
 
 class ResetTypes {
     companion object {
-        fun getResetTypeById(id: Int): ResetType? {
-            return when (id) {
-                in 1.. ResetType.values().size -> ResetType.values()[id - 1]
-                else -> null
-            }
+        fun getResetTypeById(id: Int): ResetType? =
+            ResetType.values().filter { it.id == id}.singleOrNull()
+
+        fun getResetTypeByName(name: String): ResetType? {
+            if (name.lowercase().equals("day"))
+                return ResetType.LONGREST
+            return ResetType.values().filter{ it.name == name.uppercase() }.singleOrNull()
         }
     }
 }
@@ -1205,7 +1323,9 @@ enum class ResetType(val id: Int, val label: String) {
     SHORTREST(1, "Short Rest"),
     LONGREST(2, "Long Rest"),
     DAWN(3, "Dawn"),
-    OTHER(4, "Other")
+    OTHER(4, "Other"),
+    TURN(90, "Turn"),
+    NONE(99, "Not applicable")
 }
 
 class SourceCategories {
@@ -1236,12 +1356,8 @@ enum class SourceCategory(val id: Int, val label: String, val description: Strin
 
 class Movements {
     companion object {
-        fun getMovementById(id: Int): Movement? {
-            return when (id) {
-                in 1.. Movement.values().size -> Movement.values()[id - 1]
-                else -> null
-            }
-        }
+        fun getMovementById(id: Int): Movement =
+            Movement.values().filter { it.id == id}.singleOrNull() ?: Movement.UNKNOWN
     }
 }
 
@@ -1250,7 +1366,8 @@ enum class Movement(val id: Int, val label: String, val description: String) {
     BURROW(2, "Burrow", "Burrowing"),
     CLIMB(3, "Climb", "Climbing"),
     FLY(4, "Fly", "Flying"),
-    SWIM(5, "Swim", "Swimming")
+    SWIM(5, "Swim", "Swimming"),
+    UNKNOWN(99, "Unknown", "")
 }
 
 class ProficiencyGroups {
@@ -1293,3 +1410,5 @@ enum class Rarity(val label: String) {
     VERYRARE("Very Rare"),
     LEGENDARY("Legendary")
 }
+
+

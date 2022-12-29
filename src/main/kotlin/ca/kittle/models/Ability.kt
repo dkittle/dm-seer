@@ -30,15 +30,13 @@ data class Abilities (
 
 @Serializable
 data class Ability (
-    val id: AbilityId,
+    val ability: AbilityId,
     val value: Int,
-    var name: String = "",
     var modifier: Int = 0
 ) {
     init {
         if (value >= 1 && value <= 30)
             modifier = Abilities.modifiers().get(value - 1)
-        name = id.name.lowercase()
     }
 }
 

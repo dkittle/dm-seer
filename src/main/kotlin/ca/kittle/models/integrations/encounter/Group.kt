@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Groups (
+data class Group (
 
   @SerialName("id"    ) var id    : String? = null,
   @SerialName("order" ) var order : Int?    = null,
