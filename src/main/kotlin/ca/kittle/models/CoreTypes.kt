@@ -1107,12 +1107,8 @@ enum class Alignment(val id: Int, val label: String, val description: String?, v
 
 class Sources {
     companion object {
-        fun getSourceById(id: Int): Source {
-            return when (id) {
-                in 1.. Source.values().size -> Source.values()[id - 1]
-                else -> Source.UNKNOWN
-            }
-        }
+        fun getSourceById(id: Int): Source =
+            Source.values().filter { it.id == id }.singleOrNull() ?: Source.UNKNOWN
     }
 }
 

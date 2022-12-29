@@ -3,6 +3,8 @@ package ca.kittle.repositories
 import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
 import ca.kittle.models.*
+import ca.kittle.util.ActionParser
+import ca.kittle.util.ActionParser.Companion.parseActions
 import ca.kittle.util.TraitParser.parseTraits
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
@@ -54,15 +56,15 @@ object CreatureDao {
                         RollableTrait(it.trait, it.description,
                             it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
                             it.activationType?.let { i -> ActivationTypes.getActivationTypeById(i)},
-                            it.uses, listOf())
+                            it.uses, getCreatureRolls(id, it.trait))
                     3 ->
                         SpellsPerDayTrait(it.trait, it.description,
                             it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
-                            listOf())
+                            getCreatureSpells(id, it.trait))
                     4 ->
                         SpellSlotsTrait(it.trait, it.description,
                             it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
-                            listOf())
+                            getCreatureSpells(id, it.trait))
                     else ->
                         Trait(it.trait, it.description,
                             it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
@@ -83,8 +85,56 @@ object CreatureDao {
                 else -> it
             }
         })
-        return@dbQuery withTraits
+        val features = CreatureFeatures.select { CreatureFeatures.creatureId eq id}.let { CreatureFeatureDO.wrapRows(it) }
+            .map {
+                when(it.type) {
+                    2 ->
+                        RollableFeature(it.feature, it.description,
+                            it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
+                            ActivationTypes.getActivationTypeById(it.activationType),
+                            it.uses, getCreatureRolls(id, it.feature))
+                    3 ->
+                        getAttackAction(id, it.feature).copy(name = it.feature, description = it.description,
+                            resets = it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
+                            activationType = ActivationTypes.getActivationTypeById(it.activationType),
+                            rolls = getCreatureRolls(id, it.feature))
+                    4 ->
+                        SpellsPerDayFeature(it.feature, it.description,
+                            it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
+                            ActivationType.ACTION,
+                            getCreatureSpells(id, it.feature))
+                    5 ->
+                        SpellSlotsFeature(it.feature, it.description,
+                            it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
+                            ActivationType.ACTION,
+                            getCreatureSpells(id, it.feature))
+                    else ->
+                        Feature(it.feature, it.description,
+                            it.resetType?.let { i -> ResetTypes.getResetTypeById(i) },
+                             ActivationTypes.getActivationTypeById(it.activationType),
+                            it.uses)
+                }
+            }
+        val withActions = withTraits.copy(actions = features.filter { it.activationType == ActivationType.ACTION})
+        val withBonus = withActions.copy(bonusActions = features.filter { it.activationType == ActivationType.BONUSACTION})
+        val withReaction = withBonus.copy(reactions = features.filter { it.activationType == ActivationType.REACTION})
+        val withMythic = withReaction.copy(mythicActions = features.filter { it.activationType == ActivationType.MYTHIC})
+        val withLegendary = withMythic.copy(legendaryActions = features.filter { it.activationType == ActivationType.LEGENDARY})
+        return@dbQuery withLegendary
     }
+
+    private fun getAttackAction(id: Int, name: String): AttackAction {
+        return CreatureAttacks.select{(CreatureAttacks.creatureId eq id) and (CreatureAttacks.featureName eq name)}
+            .let {i -> CreatureAttackDO.wrapRows(i) }
+            .map{ AttackAction("", "", null, ActivationType.ACTION, it.toHit,
+                AttackTypes.getAttackTypeById(it.type) ?: AttackType.MELEE, it.range, it.target, listOf())}
+            .first()
+    }
+    private fun getCreatureRolls(id: Int, featureName: String): List<Roll> =
+        CreatureRolls.select {(CreatureRolls.creatureId eq id) and (CreatureRolls.featureName eq featureName)}
+            .let {i -> CreatureRollDO.wrapRows(i) }
+            .map{ i-> Roll(Dice.parseRoll(i.roll), DamageTypes.getDamageTypeByName(i.damageType),
+                i.condition?.let { Conditions.getConditionByName(it) }, i.saveDc, i.saveAbility) }
 
     private fun getCreatureSpells(id: Int, featureName: String): List<SpellUses> =
         CreatureSpells.select {(CreatureSpells.creatureId eq id) and (CreatureSpells.featureName eq featureName)}
@@ -107,7 +157,7 @@ object CreatureDao {
         Dice.parseRoll(cr.hitpointDice),
         ChallengeRatings.getChallengeRatingById(cr.challengeRating)?.label ?: "unknown",
         cr.swarmName,
-        Sizes.getSizeById(cr.swarmSize ?: 0).label,
+        (cr.swarmSize ?: null)?.let { Sizes.getSizeById(it).label },
         CreatureTypes.getCreatureTypeById(cr.swarmType ?: 0)?.label,
         cr.armorClass,
         cr.armor,
@@ -136,8 +186,8 @@ object CreatureDao {
         listOf(),
         listOf(),
         listOf(),
-        "",
-        "",
+        cr.mythicDescription,
+        cr.legendaryDescription,
         listOf(),
         cr.createdOn,
         cr.updatedOn)
@@ -167,7 +217,11 @@ object CreatureDao {
                 it[swarmSize] = if (cr.swarm?.sizeId != 99) cr.swarm?.sizeId else null
                 it[swarmType] = cr.swarm?.typeId
                 it[lairDescription] = cr.lairDescription ?: ""
+//                it[legendaryDescription] = ...
+//                it[mythicDescription] = ...
                 it[official] = false
+                it[mythicDescription] = ActionParser.parseDescription(cr.mythicActionsDescription ?: "")
+                it[legendaryDescription] = ActionParser.parseDescription(cr.legendaryActionsDescription ?: "")
                 it[createdOn] = Database.now
                 it[updatedOn] = Database.now
                 it[accountId] = userAccountId
@@ -226,6 +280,12 @@ object CreatureDao {
             CreatureLanguages.insert {
                 it[language] = s.languageId
                 it[notes] = s.notes
+                it[creatureId] = crId
+            }
+        }
+        cr.environments.forEach { s->
+            CreatureEnvironments.insert {
+                it[environment] = s
                 it[creatureId] = crId
             }
         }
@@ -336,7 +396,6 @@ object CreatureDao {
                         it[resetType] = s.resets?.id
                         it[creatureId] = crId
                     }
-                    var ord = 1
                     s.spells.forEach {spell->
                         CreatureSpells.insert {
                             it[order] = spell.order
@@ -356,7 +415,123 @@ object CreatureDao {
                         it[resetType] = s.resets?.id
                         it[creatureId] = crId
                     }
-                    var ord = 1
+                    s.spells.forEach {spell->
+                        CreatureSpells.insert {
+                            it[order] = spell.order
+                            it[uses] = spell.uses
+                            it[spells] = spell.spells.toString().replace("*", "").trim()
+                            it[featureName] = s.name
+                            it[creatureId] = crId
+                        }
+                    }
+                }
+            }
+        }
+        val actions = (parseActions(cr.actionsDescription, ActivationType.ACTION) +
+                parseActions(cr.bonusActionsDescription ?: "", ActivationType.BONUSACTION) +
+                parseActions(cr.reactionsDescription ?: "", ActivationType.REACTION) +
+                parseActions(cr.mythicActionsDescription ?: "", ActivationType.MYTHIC) +
+                parseActions(cr.legendaryActionsDescription, ActivationType.LEGENDARY))
+        actions.filter { it is Feature || it is RollableFeature }
+            .filter { it.description.lowercase().contains("per day") ||
+                    it.description.lowercase().contains("long rest")}
+            .map { it.resets = ResetType.LONGREST}
+        actions.filter { it is Feature || it is RollableFeature }
+            .filter { it.description.lowercase().contains("short rest")}
+            .map { it.resets = ResetType.SHORTREST}
+        actions.forEach { s->
+            when (s) {
+                is Feature -> {
+                    CreatureFeatures.insert {
+                        it[feature] = s.name
+                        it[type] = 1
+                        it[description] = s.description
+                        it[activationType] = s.activationType.id
+                        it[uses] = s.uses
+                        it[resetType] = s.resets?.id
+                        it[creatureId] = crId
+                    }
+                }
+                is RollableFeature -> {
+                    CreatureFeatures.insert {
+                        it[feature] = s.name
+                        it[type] = 2
+                        it[description] = s.description
+                        it[activationType] = s.activationType.id
+                        it[uses] = s.uses
+                        it[resetType] = s.resets?.id
+                        it[creatureId] = crId
+                    }
+                    s.rolls.forEach {r->
+                        CreatureRolls.insert {
+                            it[roll] = r.diceRoll.diceString ?: ""
+                            it[damageType] = r.type.label.lowercase()
+                            it[condition] = r.condition?.name
+                            it[saveDc] = r.saveDc
+                            it[saveAbility] = r.saveAbility
+                            it[featureName] = s.name
+                            it[creatureId] = crId
+                        }
+                    }
+                }
+                is AttackAction -> {
+                    CreatureFeatures.insert {
+                        it[feature] = s.name
+                        it[type] = 3
+                        it[description] = s.description
+                        it[activationType] = s.activationType.id
+                        it[uses] = null
+                        it[resetType] = s.resets?.id
+                        it[creatureId] = crId
+                    }
+                    CreatureAttacks.insert {
+                        it[type] = s.attackType.id
+                        it[toHit] = s.toHit
+                        it[range] = s.range
+                        it[target] = s.target
+                        it[featureName] = s.name
+                        it[creatureId] = crId
+                    }
+                    s.rolls.forEach {r->
+                        CreatureRolls.insert {
+                            it[roll] = r.diceRoll.diceString ?: ""
+                            it[damageType] = r.type.label.lowercase()
+                            it[condition] = r.condition?.name
+                            it[saveDc] = r.saveDc
+                            it[saveAbility] = r.saveAbility
+                            it[featureName] = s.name
+                            it[creatureId] = crId
+                        }
+                    }
+                }
+                is SpellsPerDayFeature -> {
+                    CreatureFeatures.insert {
+                        it[feature] = s.name
+                        it[type] = 4
+                        it[description] = s.description
+                        it[activationType] = s.activationType.id
+                        it[resetType] = s.resets?.id
+                        it[creatureId] = crId
+                    }
+                    s.spells.forEach {spell->
+                        CreatureSpells.insert {
+                            it[order] = spell.order
+                            it[uses] = spell.uses
+                            it[spells] = spell.spells.toString().replace("*", "").trim()
+                            it[featureName] = s.name
+                            it[creatureId] = crId
+                        }
+                    }
+                }
+                is SpellSlotsFeature -> {
+                    CreatureFeatures.insert {
+                        it[feature] = s.name
+                        it[type] = 5
+                        it[description] = s.description
+                        it[activationType] = s.activationType.id
+                        it[resetType] = s.resets?.id
+                        it[creatureId] = crId
+                    }
                     s.spells.forEach {spell->
                         CreatureSpells.insert {
                             it[order] = spell.order

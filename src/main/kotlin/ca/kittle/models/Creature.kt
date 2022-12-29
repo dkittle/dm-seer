@@ -1,5 +1,6 @@
 package ca.kittle.models
 
+import ca.kittle.models.CreatureSkills.index
 import ca.kittle.models.CreatureTraits.nullable
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -176,6 +177,8 @@ object Creatures : IntIdTable("creatures") {
     val createdOn = datetime("created_on")
     val updatedOn = datetime("updated_on")
     val official = bool("official")
+    val legendaryDescription = text("legendary_description")
+    val mythicDescription = text("mythic_desription")
     val accountId = reference("account_id", Accounts)
 }
 
@@ -203,6 +206,8 @@ class CreatureDO(id: EntityID<Int>): IntEntity(id) {
     var createdOn by Creatures.createdOn
     var updatedOn by Creatures.updatedOn
     var official by Creatures.official
+    var legendaryDescription by Creatures.legendaryDescription
+    var mythicDescription by Creatures.mythicDescription
     var accountId by AccountDO referencedOn Creatures.accountId
 }
 
@@ -463,7 +468,7 @@ object CreatureRolls : IntIdTable("creature_rolls") {
     val condition = text("condition").nullable()
     val saveDc = integer("save_dc").nullable()
     val saveAbility = integer("save_ability").nullable()
-    val featureName = text("feature_name")
+    val featureName = text("feature_name").index()
     val creatureId = reference("creature_id", Creatures)
 }
 
@@ -482,7 +487,7 @@ object CreatureSpells : IntIdTable("creature_spells") {
     val order = integer("order")
     val uses = integer("uses")
     val spells = text("spells")
-    val featureName = text("feature_name")
+    val featureName = text("feature_name").index()
     val creatureId = reference("creature_id", Creatures)
 }
 
@@ -541,7 +546,7 @@ object CreatureFeatures : IntIdTable("creature_features") {
     val feature = text("feature")
     val type = integer("type")
     val description = text("description")
-    val activationType = integer("activation_type").nullable()
+    val activationType = integer("activation_type")
     val uses = integer("uses").nullable()
     val resetType = integer("reset_type").nullable()
     val creatureId = reference("creature_id", Creatures)
@@ -558,3 +563,21 @@ class CreatureFeatureDO(id: EntityID<Int>): IntEntity(id) {
     var creatureId = CreatureDO referencedOn CreatureFeatures.creatureId
 }
 
+object CreatureAttacks : IntIdTable("creature_attacks") {
+    val type = integer("type")
+    val toHit = integer("to_hit")
+    val range = text("range")
+    val target = text("target")
+    val featureName = text("feature_name").index()
+    val creatureId = reference("creature_id", Creatures)
+}
+
+class CreatureAttackDO(id: EntityID<Int>): IntEntity(id) {
+    companion object : IntEntityClass<CreatureAttackDO>(CreatureAttacks)
+    var type by CreatureAttacks.type
+    var toHit by CreatureAttacks.toHit
+    var range by CreatureAttacks.range
+    var target by CreatureAttacks.target
+    var featureName by CreatureAttacks.featureName
+    var creatureId = CreatureDO referencedOn CreatureAttacks.creatureId
+}

@@ -9,7 +9,7 @@ class ActionParser {
 
     companion object {
         private val logger = KotlinLogging.logger {}
-        fun parseActions(a: String): List<BaseFeature> {
+        fun parseActions(a: String, activation: ActivationType): List<BaseFeature> {
             val actionString = a.stripNewLine()
             val m = Pattern.compile("<strong>(.+?)</strong>").matcher(actionString)
             val md = Pattern.compile("</strong>(.+?)<strong>").matcher("$actionString<strong>")
@@ -17,14 +17,13 @@ class ActionParser {
             while (m.find() && md.find()) {
                 if (md.group(1).contains("Melee Weapon Attack") ||
                     md.group(1).contains("Ranged Weapon Attack"))
-                    result.add(parseAttackAction(m.group(1), md.group(1).stripHtml()))
+                    result.add(parseAttackAction(activation, m.group(1), md.group(1).stripHtml()))
                 else if (m.group(1).contains("Spellcasting"))
                     result.add(parseSpellCasting(m.group(1), md.group(1).stripHtml(),
                         ResetType.LONGREST, md.group(1)))
                 else
-                    result.add(parseNonAttack(m.group(1), md.group(1).stripHtml()))
+                    result.add(parseNonAttack(activation, m.group(1), md.group(1).stripHtml()))
             }
-            for (ac in result) { logger.debug { ac } }
             return result
         }
 
@@ -33,23 +32,24 @@ class ActionParser {
             return m?.value?.stripHtml() ?: ""
         }
 
-        private fun parseNonAttack(name: String, description: String): BaseFeature {
+        private fun parseNonAttack(activation: ActivationType, name: String, description: String): BaseFeature {
             val rolls = (findRecharge(name) + findRolls(description))
             val p = Pattern.compile("\\((\\d+?)/(Day)").matcher(name)
             val uses =
                 if (p.find())
                     Uses(p.group(1).toInt(), ResetTypes.getResetTypeByName(p.group(2)) ?: ResetType.NONE) else null
             if (rolls.isNotEmpty())
-                return RollableFeature(name, description, null, uses?.uses, uses?.resets, rolls)
-            return Feature(name, description, null, uses?.uses, uses?.resets)
+                return RollableFeature(name, description, uses?.resets, activation, uses?.uses, rolls)
+            return Feature(name, description, uses?.resets, activation, uses?.uses)
         }
 
-        private fun parseAttackAction(name: String, description: String): BaseFeature {
+        private fun parseAttackAction(activation: ActivationType, name: String, description: String): BaseFeature {
             val save = findSave(description)
             return AttackAction(
                 name,
                 description,
                 null,
+                activation,
                 findToHitAdjustment(description),
                 determineAttackType(description),
                 findRangeOrReach(description),
@@ -62,9 +62,9 @@ class ActionParser {
             val p = Pattern.compile("(.+?)</p>").matcher(spells)
             val shortDescription = if (p.find()) p.group(1).stripHtml().stripNewLine() else description.stripHtml().stripNewLine()
             if (!TraitParser.findAtWill(spells).isEmpty()) {
-                return SpellsPerDayFeature(name, shortDescription, resets, TraitParser.parseSpellUses(spells))
+                return SpellsPerDayFeature(name, shortDescription, resets, ActivationType.ACTION, TraitParser.parseSpellUses(spells))
             }
-            return SpellSlotsFeature(name, shortDescription, resets, TraitParser.parseSpellUses(spells))
+            return SpellSlotsFeature(name, shortDescription, resets, ActivationType.ACTION, TraitParser.parseSpellUses(spells))
         }
         private fun findSave(input: String): RollSave? {
             val m = Pattern.compile("DC (\\d+?) (\\w+)").matcher(input)

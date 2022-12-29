@@ -35,7 +35,7 @@ object Database {
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
                 CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
-                CreatureConditionImmunities)
+                CreatureConditionImmunities, CreatureAttacks)
 
             SchemaUtils.create(Campaigns, CampaignOrigins,
                 Encounters, EncounterOrigins, Locations, Rooms, Combats, Combatants,
@@ -44,7 +44,7 @@ object Database {
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
                 CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
-                CreatureConditionImmunities)
+                CreatureConditionImmunities, CreatureAttacks)
             commit()
             logger.debug {"Schema created" }
         }

@@ -4,6 +4,7 @@ import ca.kittle.integrations.DdbProxy
 import ca.kittle.integrations.mapping.DdbCreature
 import ca.kittle.models.UserSession
 import ca.kittle.repositories.CreatureDao
+import ca.kittle.routes.support.OK
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -60,8 +61,7 @@ fun Route.creatureRouting() {
                     )
                 ddbProxy.cacheAvatars(creature)
                 CreatureDao.cacheCreatureFromDdb(creature, accountId)
-                val new = mapping.createCreature(creature)
-                call.respond(new)
+                call.respond(status = HttpStatusCode.Created, OK)
             }
             get("/ddb/search/{term?}") {
 //                val term = call.parameters["term"] ?: return@get call.respondText(

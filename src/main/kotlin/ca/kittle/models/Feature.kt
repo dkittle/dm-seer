@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 sealed class BaseFeature {
     abstract var name: String
     abstract var description: String
+    abstract var resets: ResetType?
+    abstract var activationType: ActivationType
 }
 
 @Serializable
@@ -14,9 +16,9 @@ sealed class BaseFeature {
 data class Feature (
     override var name: String = "",
     override var description: String = "",
-    var activationType: ActivationType? = null,
+    override var resets: ResetType? = null,
+    override var activationType: ActivationType,
     val uses: Int? = null,
-    val resets: ResetType? = null,
 ) : BaseFeature()
 
 @Serializable
@@ -24,12 +26,13 @@ data class Feature (
 data class AttackAction (
     override var name: String = "",
     override var description: String = "",
-    var activationType: ActivationType? = null,
-    val toHit: Int,
-    val attackType: AttackType,
-    val range: String,
-    val target: String,
-    val rolls: List<Roll>
+    override var resets: ResetType? = null,
+    override var activationType: ActivationType,
+    var toHit: Int,
+    var attackType: AttackType,
+    var range: String,
+    var target: String,
+    var rolls: List<Roll>
 ) : BaseFeature()
 
 @Serializable
@@ -37,9 +40,9 @@ data class AttackAction (
 data class RollableFeature(
     override var name: String = "",
     override var description: String = "",
-    var activationType: ActivationType? = null,
+    override var resets: ResetType? = null,
+    override var activationType: ActivationType,
     val uses: Int? = null,
-    val resets: ResetType? = null,
     val rolls: List<Roll>
 ) : BaseFeature()
 
@@ -52,7 +55,8 @@ sealed class SpellCastingFeature() : BaseFeature() {
 data class SpellsPerDayFeature (
     override var name: String = "",
     override var description: String = "",
-    val resets: ResetType? = null,
+    override var resets: ResetType? = ResetType.LONGREST,
+    override var activationType: ActivationType,
     override var spells: List<SpellUses>
 ) : SpellCastingFeature()
 
@@ -61,7 +65,8 @@ data class SpellsPerDayFeature (
 data class SpellSlotsFeature (
     override var name: String = "",
     override var description: String = "",
-    val resets: ResetType? = null,
+    override var resets: ResetType? = ResetType.LONGREST,
+    override var activationType: ActivationType,
     override var spells: List<SpellUses>
 ) : SpellCastingFeature()
 

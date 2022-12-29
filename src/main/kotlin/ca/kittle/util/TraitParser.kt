@@ -63,7 +63,7 @@ object TraitParser {
             if (s.isNotEmpty()) add(SpellUses(0, 10000, s))
             for (i in 5 downTo 1) {
                 s = findUsesPerDay(i, description)
-                if (s.isNotEmpty()) add(SpellUses(i, i, s))
+                if (s.isNotEmpty()) add(SpellUses(this.size, i, s))
             }
             s = findCantrips(description)
             if (s.isNotEmpty()) add(SpellUses(0, 10000, s))
