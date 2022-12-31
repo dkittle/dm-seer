@@ -4,6 +4,7 @@ import ca.kittle.integrations.Database.dbQuery
 import ca.kittle.models.CampaignOrigins
 import ca.kittle.models.CharacterOrigins
 import ca.kittle.models.Characters
+import ca.kittle.models.CreatureOrigins
 import ca.kittle.models.integrations.encounter.Player
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -19,7 +20,10 @@ object PlayerCharacterDao {
 //
 //    }
     suspend fun playerCharacterFromDdb(ch: Player, userAccountId: Int): Int = dbQuery {
-        return@dbQuery Characters.insertAndGetId {
+        return@dbQuery CharacterOrigins.select { CharacterOrigins.originId eq ch.id.toInt() }
+            .map { it[CharacterOrigins.characterId].value }
+            .singleOrNull() ?:
+            Characters.insertAndGetId {
             it[name] = ch.name ?: "Hero yet to become one"
             it[level] = ch.level ?: 0
             it[species] = ch.species ?: "unknown"

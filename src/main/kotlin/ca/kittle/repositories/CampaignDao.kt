@@ -55,10 +55,9 @@ object CampaignDao {
     }
 
     suspend fun campaignFromDdb(campaign: DdbCampaign, accountId: Int): Int = dbQuery {
-        CampaignOrigins.select { CampaignOrigins.originId eq campaign.id.toInt() }
-            .mapNotNull { it }
-            .singleOrNull()
-            ?: return@dbQuery Campaigns.insertAndGetId {
+        return@dbQuery CampaignOrigins.select { CampaignOrigins.originId eq campaign.id.toInt() }
+            .map { it[CampaignOrigins.campaignId].value }.singleOrNull()
+            ?: Campaigns.insertAndGetId {
                 it[name] = campaign.name
                 it[splashUrl] = campaign.splashUrl
                 it[description] = ""
@@ -69,7 +68,6 @@ object CampaignDao {
                 it[updatedOn] = Database.now
                 it[dmId] = accountId
             }.value
-        return@dbQuery 0
     }
 
 

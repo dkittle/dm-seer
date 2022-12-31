@@ -11,26 +11,33 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 
 @Serializable
 data class Encounter(
-    var id: Int,
-    var name: String,
-    var suggestedAcl: Int,
-    var description: String,
-    var private: Boolean,
-    var dmgDifficulty: Int,
-    var sfDifficulty: Int,
-    var dceDifficulty: Int,
-    var dcDifficulty: Int,
-    var official: Boolean,
-    var sourcePageNumber: Int,
-    var createdOn: LocalDateTime,
-    var updatedOn: LocalDateTime,
-    var dmName: String,
-    var campaign: String,
-    var location: String,
-    var room: String,
-    var source: String
+    val id: Int,
+    val name: String,
+    val suggestedAcl: Int,
+    val description: String,
+    val private: Boolean,
+    val creatures: Int,
+    val dmgDifficulty: Int,
+    val sfDifficulty: Int,
+    val dceDifficulty: Int,
+    val dcDifficulty: Int,
+    val luDifficulty: Int,
+    val official: Boolean,
+    val sourcePageNumber: Int?,
+    val createdOn: LocalDateTime,
+    val updatedOn: LocalDateTime,
+    val dmName: String,
+    val campaign: String,
+    val location: String,
+    val room: String,
+    val source: String
 )
 
+data class EncounterSummary(
+    val encounterId: Int,
+    val numberCreatures: Int,
+    val totalCreatureCR: Int,
+)
 
 object Encounters : IntIdTable("encounters") {
     val name = text("name")
@@ -41,6 +48,7 @@ object Encounters : IntIdTable("encounters") {
     val sfDifficulty = integer("sf_difficulty")
     val dceDifficulty = integer("dce_difficulty")
     val dcDifficulty = integer("dc_difficulty")
+    val luDifficulty = integer("lu_difficulty")
     val official = bool("official")
     val sourcePage = integer("source_page").nullable()
     val createdOn = datetime("created_on")
@@ -60,6 +68,10 @@ class EncounterDO(id: EntityID<Int>): IntEntity(id) {
     var private by Encounters.private
     var suggestedAcl by Encounters.suggestedAcl
     var dmgDifficulty by Encounters.dmgDifficulty
+    var sfDifficulty by Encounters.sfDifficulty
+    var dceDifficulty by Encounters.dceDifficulty
+    var dcDifficulty by Encounters.dcDifficulty
+    var luDifficulty by Encounters.luDifficulty
     var official by Encounters.official
     var sourcePage by Encounters.sourcePage
     var createdOn by Encounters.createdOn
@@ -92,14 +104,15 @@ class EncounterDO(id: EntityID<Int>): IntEntity(id) {
  * duration
  */
 object Encounterees : IntIdTable("encounterees") {
-    val name = text("name").nullable()
+    val name = text("name")
     val type = text("type")
     val hitpoints = integer("hitpoints")
     val groupId = text("group_id").nullable()
     val groupOrder = integer("group_order").nullable()
     val createdOn = datetime("created_on")
     val updatedOn = datetime("updated_on")
-    val creatureId = reference("creature_id", Creatures).nullable()
+    val encounterId = reference("encounter_id", Encounters)
+    val creatureId = reference("creature_id", Creatures)
 }
 
 class EncountereeDO(id: EntityID<Int>): IntEntity(id) {
@@ -111,7 +124,8 @@ class EncountereeDO(id: EntityID<Int>): IntEntity(id) {
     var groupOrder by Encounterees.groupOrder
     var createdOn by Encounterees.createdOn
     var updatedOn by Encounterees.updatedOn
-    var creatureId = CreatureDO optionalReferencedOn Encounterees.creatureId
+    var encounterId = EncounterDO referencedOn Encounterees.encounterId
+    var creatureId = CreatureDO referencedOn Encounterees.creatureId
 }
 
 object Combats : IntIdTable("combats") {

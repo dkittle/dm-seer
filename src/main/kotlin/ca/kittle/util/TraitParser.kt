@@ -17,6 +17,10 @@ fun String.stripNewLine(): String {
     return regn.replace(wip, " ").trim()
 }
 
+fun String.isPositiveInteger(): Boolean {
+    return this.all { char -> char.isDigit() }
+}
+
 object TraitParser {
 
     private val logger = KotlinLogging.logger {}

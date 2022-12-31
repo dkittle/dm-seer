@@ -9,8 +9,8 @@ data class Monster (
 
   @SerialName("groupId"            ) var groupId            : String,
   @SerialName("id"                 ) var id                 : Int,
-  @SerialName("uniqueId"           ) var uniqueId           : String,
-  @SerialName("name"               ) var name               : String,
+  @SerialName("uniqueId"           ) var uniqueId           : String?,
+  @SerialName("name"               ) var name               : String?,
   @SerialName("order"              ) var order              : Int,
   @SerialName("quantity"           ) var quantity           : Int,
   @SerialName("notes"              ) var notes              : String? = null,

@@ -261,7 +261,7 @@ object CreatureDao {
 
     suspend fun getCachedCreatureId(vttId: Int): Int? = dbQuery {
         return@dbQuery CreatureOrigins.select { CreatureOrigins.originId eq vttId }
-            .map { it[CreatureOrigins.originId] }.singleOrNull()
+            .map { it[CreatureOrigins.creatureId].value }.singleOrNull()
     }
 
     suspend fun cacheCreatureFromDdb(cr: ca.kittle.models.integrations.creature.Creature, userAccountId: Int): Int = dbQuery {

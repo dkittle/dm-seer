@@ -17,11 +17,6 @@ fun Route.encounterRouting() {
 
     authenticate {
         route("/api/encounters") {
-//        get("") {
-//            val encounters = encounterRepository.encounters(1) ?:
-//                return@get call.respondText("Could not get your encounters", status = HttpStatusCode.BadRequest)
-//            call.respond(encounters)
-//        }
             get("/ddb") {
                 val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
@@ -42,6 +37,17 @@ fun Route.encounterRouting() {
 
     authenticate {
         route("/api/encounter") {
+            get("/{id}") {
+                val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
+                return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                val id = call.parameters["id"] ?: return@get call.respondText(
+                    "Missing encounter id", status = HttpStatusCode.BadRequest
+                )
+                val encounter = EncounterDao.encounter(id.toInt(), accountId) ?:
+                return@get call.respondText("Could not get your encounters", status = HttpStatusCode.BadRequest)
+                call.respond(encounter)
+            }
+
             get("/ddb/{id?}") {
                 val (_, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
@@ -57,13 +63,6 @@ fun Route.encounterRouting() {
                 )
                 call.respond(encounter)
             }
-//        get("/{id?}") {
-//            val id = call.parameters["id"] ?:
-//                return@get call.respondText("Missing encounter id", status = HttpStatusCode.BadRequest)
-//            val encounter = encounterRepository.encounter(id.toLong(), null) ?:
-//                return@get call.respondText("No encounter found with id $id", status = HttpStatusCode.NotFound)
-//            call.respond(encounter)
-//        }
         }
     }
 

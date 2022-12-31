@@ -292,8 +292,8 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
         val encounters = arrayListOf<Encounter>()
         var offset = 0
         var numberEncounters = 0
-        while (offset == 0 || offset < 20) {
-//        while (offset == 0 || offset < numberEncounters) {
+//        while (offset == 0 || offset < 20) {
+        while (offset == 0 || offset < numberEncounters) {
             val client = jsonClient()
             val url = if (offset > 0) "$DDB_ENCOUNTER_SERVICE?skip=$offset&take=10" else DDB_ENCOUNTER_SERVICE
             val response = client.get(url) {
