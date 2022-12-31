@@ -11,8 +11,10 @@ fun String.stripHtml(): String {
 }
 
 fun String.stripNewLine(): String {
-    val regex = "\n".toRegex()
-    return regex.replace(this, "").trim()
+    val regr = "\r".toRegex()
+    val wip = regr.replace(this, " ").trim()
+    val regn = "\n".toRegex()
+    return regn.replace(wip, " ").trim()
 }
 
 object TraitParser {

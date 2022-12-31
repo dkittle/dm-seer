@@ -9,15 +9,35 @@ class ActionParser {
 
     companion object {
         private val logger = KotlinLogging.logger {}
-        fun parseActions(a: String, activation: ActivationType): List<BaseFeature> {
+
+        fun parseSingleActionText(a: String, activation: ActivationType = ActivationType.ACTION): List<BaseFeature> {
+            val actionString = a.stripNewLine()
+            val m = Pattern.compile("(.+?)[.]").matcher(actionString)
+            val md = Pattern.compile("[.](.+)").matcher(actionString)
+            if (m.find() && md.find()) {
+                val name = "${m.group(1)}."
+                val desc = md.group(1)
+                if (desc.lowercase().contains("melee weapon attack") ||
+                    desc.lowercase().contains("ranged weapon attack"))
+                        return parseAttackAction(activation, name, desc)
+                else if (desc.lowercase().contains("spellcasting"))
+                    return listOf(parseSpellCasting(name, desc, ResetType.LONGREST, desc))
+                else
+                    return listOf(parseNonAttack(activation, name, desc))
+            }
+            return listOf()
+        }
+
+
+        fun parseActions(a: String, activation: ActivationType = ActivationType.ACTION): List<BaseFeature> {
             val actionString = a.stripNewLine()
             val m = Pattern.compile("<strong>(.+?)</strong>").matcher(actionString)
             val md = Pattern.compile("</strong>(.+?)<strong>").matcher("$actionString<strong>")
-            var result = mutableListOf<BaseFeature>()
+            val result = mutableListOf<BaseFeature>()
             while (m.find() && md.find()) {
                 if (md.group(1).contains("Melee Weapon Attack") ||
                     md.group(1).contains("Ranged Weapon Attack"))
-                    result.add(parseAttackAction(activation, m.group(1), md.group(1).stripHtml()))
+                    result.addAll(parseAttackAction(activation, m.group(1), md.group(1).stripHtml()))
                 else if (m.group(1).contains("Spellcasting"))
                     result.add(parseSpellCasting(m.group(1), md.group(1).stripHtml(),
                         ResetType.LONGREST, md.group(1)))
@@ -43,9 +63,8 @@ class ActionParser {
             return Feature(name, description, uses?.resets, activation, uses?.uses)
         }
 
-        private fun parseAttackAction(activation: ActivationType, name: String, description: String): BaseFeature {
-            val save = findSave(description)
-            return AttackAction(
+        private fun parseAttackAction(activation: ActivationType, name: String, description: String): List<BaseFeature> {
+            val attack = AttackAction(
                 name,
                 description,
                 null,
@@ -56,6 +75,20 @@ class ActionParser {
                 findTarget(description),
                 findRolls(description)
             )
+            val versatile = if (attack.rolls.size > 1 &&
+                versatileWeapons.contains(name.removeSuffix(".").lowercase())) {
+                attack.copy(name = "${name.removeSuffix(".")} 2-handed")
+            }
+            else
+                return listOf<AttackAction>(attack)
+            val oneHanded = attack.rolls.toMutableList()
+            oneHanded.removeAt(1)
+            val twoHanded = attack.rolls.toMutableList()
+            twoHanded.removeAt(0)
+            return buildList<AttackAction>() {
+                add(attack.copy(rolls = oneHanded))
+                add(versatile.copy(rolls = twoHanded))
+            }
         }
 
         fun parseSpellCasting(name: String, description: String, resets: ResetType?, spells: String): SpellCastingFeature {

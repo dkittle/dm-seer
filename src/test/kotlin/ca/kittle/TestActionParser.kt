@@ -1,5 +1,6 @@
 package ca.kittle
 
+import ca.kittle.models.ActivationType
 import ca.kittle.models.Feature
 import ca.kittle.models.AttackAction
 import ca.kittle.models.RollableFeature
@@ -47,4 +48,37 @@ class TestActionParser {
         assertEquals(true, actions[1] is RollableFeature)
         assertEquals(true, actions[2] is Feature)
     }
+
+    @Test
+    fun TestFlamingLongsword() {
+        val input = """
+                  <p><em><strong>Longsword.</strong> Melee Weapon Attack:</em> +8 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) slashing damage, or 9 (1d10 + 4) slashing damage if used with two hands, plus 13 (3d8) fire damage.</p>
+        """.trimIndent()
+        val actions = ActionParser.parseActions(input)
+        assertEquals(2, actions.size)
+        assertEquals(true, actions[0] is AttackAction)
+        val longsword = actions[0] as AttackAction
+        assertEquals(2, longsword.rolls.size)
+        assertEquals(8, longsword.rolls[0].diceRoll.diceValue)
+        val longswordTwoHanded = actions[1] as AttackAction
+        assertEquals(2, longsword.rolls.size)
+        assertEquals(10, longswordTwoHanded.rolls[0].diceRoll.diceValue)
+    }
+
+    @Test
+    fun TestFlamingLongswordPlainText() {
+        val input = """
+                  Longsword. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) slashing damage, or 9 (1d10 + 4) slashing damage if used with two hands, plus 13 (3d8) fire damage.
+        """.trimIndent()
+        val actions = ActionParser.parseSingleActionText(input)
+        assertEquals(2, actions.size)
+        assertEquals(true, actions[0] is AttackAction)
+        val longsword = actions[0] as AttackAction
+        assertEquals(2, longsword.rolls.size)
+        assertEquals(8, longsword.rolls[0].diceRoll.diceValue)
+        val longswordTwoHanded = actions[1] as AttackAction
+        assertEquals(2, longsword.rolls.size)
+        assertEquals(10, longswordTwoHanded.rolls[0].diceRoll.diceValue)
+    }
+
 }

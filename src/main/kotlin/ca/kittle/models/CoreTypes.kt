@@ -139,49 +139,51 @@ object ChallengeRatings {
 
     fun getChallengeRatingByLabel(label: String): ChallengeRating? =
         ChallengeRating.values().filter {
-            it.label.lowercase() == label.lowercase() ||
-                    it.name.lowercase() == label.lowercase()
+            it.label.lowercase().equals(label.lowercase()) ||
+                    it.label.lowercase().equals(label.replace("cr", "")) ||
+                    it.name.lowercase().equals(label.lowercase())
         }.singleOrNull()
+
+    fun getLabels(): List<String> =
+        ChallengeRating.values().map { it.label }
 }
 
 enum class ChallengeRating(val id: Int, val label: String, val cr: Float) {
-    ZERO(1, "0", 0f),
-    ONEEIGHTH(2, "1/8", 0.125f),
-    ONEQUARTER(3, "1/4", 0.25f),
-    ONEHALF(4, "1/2", 0.5f),
-    CR1(5, "1", 1f),
-    CR2(6, "2", 2f),
-    CR3(7, "3", 3f),
-    CR4(8, "4", 4f),
-    CR5(9, "5", 5f),
-    CR6(10, "6", 6f),
-    CR7(11, "7", 7f),
-    CR8(12, "8", 8f),
-    CR9(13, "9", 9f),
-    CR10(14, "10", 10f),
-    CR11(15, "11", 11f),
-    CR12(16, "12", 12f),
-    CR13(17, "13", 13f),
-    CR14(18, "14", 14f),
-    CR15(19, "15", 15f),
-    CR16(20, "16", 16f),
-    CR17(21, "17", 17f),
-    CR18(22, "18", 18f),
-    CR19(23, "19", 19f),
-    CR20(24, "20", 20f),
-    CR21(25, "21", 21f),
-    CR22(26, "22", 22f),
-    CR23(27, "23", 23f),
-    CR24(28, "24", 24f),
-    CR25(29, "25", 25f),
-    CR26(30, "26", 26f),
-    CR27(31, "27", 27f),
-    CR28(32, "28", 28f),
-    CR29(33, "29", 29f),
-    CR30(34, "30", 30f)
+    ZERO(1, "CR0", 0f),
+    ONEEIGHTH(2, "CR1/8", 0.125f),
+    ONEQUARTER(3, "CR1/4", 0.25f),
+    ONEHALF(4, "CR1/2", 0.5f),
+    CR1(5, "CR1", 1f),
+    CR2(6, "CR2", 2f),
+    CR3(7, "CR3", 3f),
+    CR4(8, "CR4", 4f),
+    CR5(9, "CR5", 5f),
+    CR6(10, "CR6", 6f),
+    CR7(11, "CR7", 7f),
+    CR8(12, "CR8", 8f),
+    CR9(13, "CR9", 9f),
+    CR10(14, "CR10", 10f),
+    CR11(15, "CR11", 11f),
+    CR12(16, "CR12", 12f),
+    CR13(17, "CR13", 13f),
+    CR14(18, "CR14", 14f),
+    CR15(19, "CR15", 15f),
+    CR16(20, "CR16", 16f),
+    CR17(21, "CR17", 17f),
+    CR18(22, "CR18", 18f),
+    CR19(23, "CR19", 19f),
+    CR20(24, "CR20", 20f),
+    CR21(25, "CR21", 21f),
+    CR22(26, "CR22", 22f),
+    CR23(27, "CR23", 23f),
+    CR24(28, "CR24", 24f),
+    CR25(29, "CR25", 25f),
+    CR26(30, "CR26", 26f),
+    CR27(31, "CR27", 27f),
+    CR28(32, "CR28", 28f),
+    CR29(33, "CR29", 29f),
+    CR30(34, "CR30", 30f)
 }
-
-
 
 class CreatureSubTypes {
     companion object {
@@ -348,11 +350,16 @@ enum class CreatureGroupCategory(val id: Int, val label: String) {
 
 class CreatureTypes {
     companion object {
-        fun getCreatureTypeById(id: Int): CreatureType? {
-            return CreatureType.values().filter { it.id == id }.singleOrNull()
-        }
+        fun getCreatureTypeById(id: Int): CreatureType? =
+            CreatureType.values().filter { it.id == id }.singleOrNull()
+
+        fun getCreatureTypeByName(name: String): CreatureType? =
+            CreatureType.values().filter { it.label.lowercase() == name.lowercase() }.singleOrNull()
+
     }
 }
+
+val versatileWeapons = listOf<String>("quarterstaff", "spear", "battleaxe", "longsword", "trident", "warhammer")
 
 enum class CreatureType(val id: Int, val label: String, val pluralizedName: String, val avatarUrl: String, val description: String) {
     ABERRATION(1, "Aberration", "aberrations", "https://www.dndbeyond.com/avatars/4675/665/636747837392078487.jpeg", "Aberrations are utterly alien beings. Many of them have innate magical abilities drawn from the creature's alien mind rather than the mystical forces of the world. The quintessential aberrations are aboleths, and slaadi."),
@@ -373,12 +380,15 @@ enum class CreatureType(val id: Int, val label: String, val pluralizedName: Stri
 
 class Environments {
     companion object {
-        fun getEnvironmentById(id: Int): Environment? {
-            return when (id) {
-                in 1.. Environment.values().size -> Environment.values()[id - 1]
-                else -> null
-            }
-        }
+        fun getEnvironmentById(id: Int): Environment? =
+            Environment.values().filter { it.id == id }.singleOrNull()
+
+        fun getEnvironmentByName(name: String): Environment? =
+            Environment.values().filter { it.label.lowercase() == name.lowercase() }.singleOrNull()
+
+        fun getLabels(): List<String> =
+            Environment.values().map { it.label }
+
     }
 }
 
@@ -1070,9 +1080,8 @@ enum class DamageAdjustment(val id: Int, val label: String, val type: DamageAdju
 
 class Alignments {
     companion object {
-        fun getAlignmentById(id: Int): Alignment? {
-            return Alignment.values().filter { it.id == id}.get(0) ?: Alignment.UNALIGNED
-        }
+        fun getAlignmentById(id: Int): Alignment? =
+            Alignment.values().filter { it.id == id}.singleOrNull()
     }
 }
 

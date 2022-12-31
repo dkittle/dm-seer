@@ -91,7 +91,7 @@ object EncounterDao {
                 encounter.players.forEach {
                     val id = PlayerCharacterDao.playerCharacterFromDdb(it, accountId)
                     characters[it.id.toInt()] = id
-                    PlayerCharacterDao.characterOrigin(id, it.userName, it.id.toInt())
+                    PlayerCharacterDao.characterOrigin(id, it.userName ?: "Unnamed explorer", it.id.toInt())
                 }
                 // cache monsters
 //                encounter.monsters.forEach {
@@ -120,7 +120,7 @@ object EncounterDao {
             .mapNotNull { it[Encounters.id].value }
             .singleOrNull()
                 ?: return@dbQuery Encounters.insertAndGetId {
-                    it[name] = encounter.name
+                    it[name] = encounter.name ?: "Unnamed mayhem"
                     it[suggestedAcl] = 0
                     it[description] = encounter.description ?: ""
                     it[private] = true

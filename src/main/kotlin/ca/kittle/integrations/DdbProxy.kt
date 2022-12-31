@@ -340,10 +340,10 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
         val cobaltToken = authenticate()
         logger.debug { "Searching ddb creatures: $term" }
         val client = jsonClient()
-        val url =
-            "$DDB_CREATURE_SERIVCE?search=$term&skip=0&take=50&showHomebrew=f&sources=1&sources=8&sources=15"
+//        val url =
+//            "$DDB_CREATURE_SERIVCE?search=$term&skip=0&take=50&showHomebrew=f&sources=1&sources=8&sources=15"
+        val url = "$DDB_CREATURE_SERIVCE?search=$term&skip=0&take=100&showHomebrew=f&sources=18"
         logger.debug { url }
-        logger.debug { cobaltToken }
         val response = client.get(url) {
             headers {
                 append(HttpHeaders.Accept, "application/json")
@@ -377,46 +377,6 @@ class DdbProxy(private val ddbId: Int, private val cobaltSession: String) {
         if (result.creatures.size != 1)
             logger.warn { "Got ${result.creatures.size} creatures back for a single id ($id)." }
         return result.creatures.get(0)
-    }
-
-    suspend fun cacheAvatars(creature: Creature) {
-        val url = DdbCreature.fixCreatureUrl(creature.avatarUrl)
-        val large = DdbCreature.fixCreatureUrl(creature.largeAvatarUrl ?: "")
-        val basic = DdbCreature.fixCreatureUrl(creature.basicAvatarUrl ?: "")
-        val name = creature.name
-        val folder = "./avatars/${name.take(1).lowercase()}"
-        if (Files.exists(Paths.get("$folder/$name-${Url(url).pathSegments.last()}"))) {
-            logger.debug { "File $folder/$name-${Url(url).pathSegments.last()} already downloaded."}
-            return
-        }
-        logger.debug { "Caching creature avatars for $name" }
-        if (url.isNotBlank()) {
-            val client = HttpClient(CIO)
-            logger.debug { "Storing avatar for $name in $folder/" }
-            val u = Url(url)
-            val file = File("$folder/$name-${u.pathSegments.last()}")
-            client.get(url).bodyAsChannel().copyAndClose(file.writeChannel())
-            logger.debug { "Finished storing avatar from $url" }
-            client.close()
-        }
-        if (large.isNotBlank()) {
-            val client = HttpClient(CIO)
-            logger.debug { "Storing large avatar for $name in $folder/" }
-            val u = Url(large)
-            val file = File("$folder/$name-large-${u.pathSegments.last()}")
-            client.get(large).bodyAsChannel().copyAndClose(file.writeChannel())
-            logger.debug { "Finished storing large avatar from $large" }
-            client.close()
-        }
-        if (basic.isNotBlank()) {
-            val client = HttpClient(CIO)
-            logger.debug { "Storing basic avatar for $name in $folder/" }
-            val u = Url(basic)
-            val file = File("$folder/$name-basic-${u.pathSegments.last()}")
-            client.get(basic).bodyAsChannel().copyAndClose(file.writeChannel())
-            logger.debug { "Finished storing basic avatar from $basic" }
-            client.close()
-        }
     }
 
     suspend fun cacheItemAvatars(item: Item) {

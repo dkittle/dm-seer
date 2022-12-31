@@ -2,12 +2,16 @@ package ca.kittle.routes
 
 import ca.kittle.integrations.DdbProxy
 import ca.kittle.integrations.mapping.DdbCreature
+import ca.kittle.models.Credentials
 import ca.kittle.models.UserSession
 import ca.kittle.repositories.CreatureDao
 import ca.kittle.routes.support.OK
+import ca.kittle.routes.support.Search
+import ca.kittle.services.CreatureService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -31,6 +35,17 @@ fun Route.creatureRouting() {
     authenticate {
 
         route("/api/creature") {
+            get("/find") {
+                val search = call.receive<Search>()
+                val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                if (search == null || search.terms.isBlank())
+                    return@get call.respondText("You must supply at least one search term",
+                        status = HttpStatusCode.BadRequest
+                )
+                call.respond(CreatureService.findCreatures(search.terms, accountId))
+            }
+
             get("/{id?}") {
                 val id = call.parameters["id"] ?: return@get call.respondText(
                     "Missing encounter id",
@@ -59,7 +74,6 @@ fun Route.creatureRouting() {
                         "Invalid creature found with id $id",
                         status = HttpStatusCode.BadRequest
                     )
-                ddbProxy.cacheAvatars(creature)
                 CreatureDao.cacheCreatureFromDdb(creature, accountId)
                 call.respond(status = HttpStatusCode.Created, OK)
             }

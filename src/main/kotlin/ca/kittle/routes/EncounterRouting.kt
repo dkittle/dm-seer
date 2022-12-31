@@ -2,7 +2,9 @@ package ca.kittle.routes
 
 import ca.kittle.integrations.DdbProxy
 import ca.kittle.models.UserSession
+import ca.kittle.repositories.CreatureDao
 import ca.kittle.repositories.EncounterDao
+import ca.kittle.services.CreatureService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -25,7 +27,13 @@ fun Route.encounterRouting() {
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 if (vttKey.isBlank())
                     return@get call.respondText(NO_COBALT, status = HttpStatusCode.Unauthorized)
-                val encounters = DdbProxy(vttId, vttKey).encounters()
+                val ddbProxy = DdbProxy(vttId, vttKey)
+                val encounters = ddbProxy.encounters()
+                encounters.forEach {encounter ->
+                    encounter.monsters.forEach { monster ->
+                        val id = CreatureService.getCachedCreatureId(ddbProxy, monster.id, accountId)
+                    }
+                }
                 EncounterDao.cacheEncountersFromDdb(encounters, accountId)
                 call.respond(encounters)
             }

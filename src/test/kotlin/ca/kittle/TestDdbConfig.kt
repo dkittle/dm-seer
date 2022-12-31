@@ -11,12 +11,12 @@ data class ParsedRestoreType(val restoreTypes: Map<String, Any>)
 
 class TestDdbConfig {
 
-    @Test
-    fun testRestoreTypes() {
-
-        File("src/main/kotlin/ca/kittle/models/CoreTypes.kt").bufferedWriter().use { out -> generateCode(out) }
-//        File("sql/bootstrap-types.sql").bufferedWriter().use { out -> generateSql(out) }
-    }
+//    @Test
+//    fun testRestoreTypes() {
+//
+//        File("src/main/kotlin/ca/kittle/models/CoreTypes.kt").bufferedWriter().use { out -> generateCode(out) }
+////        File("sql/bootstrap-types.sql").bufferedWriter().use { out -> generateSql(out) }
+//    }
 
     fun generateCode(out: BufferedWriter) {
         out.write("package ca.kittle.models")

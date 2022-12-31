@@ -18,9 +18,9 @@ import kotlin.test.assertEquals
 class ApplicationTest {
     @Test
     fun testRoot() = testApplication {
-        application {
-            configureRouting()
-        }
+//        application {
+//            configureRouting()
+//        }
 //        client.get("/").apply {
 //            assertEquals(HttpStatusCode.NotFound, status)
 //            assertEquals("", bodyAsText())

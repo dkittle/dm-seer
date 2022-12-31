@@ -7,3 +7,6 @@ import kotlinx.serialization.Serializable
 data class CharacterIds(
     @SerialName("characterIds") var characterids: List<Long>
 )
+
+@Serializable
+data class Search(val terms: String)

@@ -25,7 +25,7 @@ data class Creature (
 	val id : Int,
 	val entityTypeId : Int,
 	val name : String,
-	val alignmentId : Int,
+	val alignmentId : Int?,
 	val sizeId : Int,
 	val typeId : Int,
 	val armorClass : Int,
@@ -34,8 +34,8 @@ data class Creature (
 	val passivePerception : Int,
 	val isHomebrew : Boolean,
 	val challengeRatingId : Int,
-	val sourceId : Int,
-	val sourcePageNumber : Int = 0,
+	val sourceId : Int?,
+	val sourcePageNumber : Int?,
 	val isLegendary : Boolean,
 	val isMythic : Boolean,
 	val hasLair : Boolean,
@@ -58,7 +58,7 @@ data class Creature (
 	val characteristicsDescription : String,
 	val lairDescription : String,
 	val languageDescription : String?,
-	val languageNote : String,
+	val languageNote : String?,
 	val hideCr : Boolean,
 	val isLegacy : Boolean
 )

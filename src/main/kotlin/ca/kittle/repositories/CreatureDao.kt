@@ -2,16 +2,81 @@ package ca.kittle.repositories
 
 import ca.kittle.integrations.Database
 import ca.kittle.integrations.Database.dbQuery
+import ca.kittle.integrations.DdbProxy
+import ca.kittle.integrations.mapping.DdbCreature
 import ca.kittle.models.*
 import ca.kittle.util.ActionParser
 import ca.kittle.util.ActionParser.Companion.parseActions
 import ca.kittle.util.TraitParser.parseTraits
+import ca.kittle.util.stripHtml
+import ca.kittle.util.stripNewLine
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 
 object CreatureDao {
     private val logger = KotlinLogging.logger {}
 
+    /**
+     * Find creatures based on search terms parsed in the companion service
+     * terms are one or two words that are in the creature name
+     * crs are a list of CRs in the form CR1/2, CR2, CR1/8 etc
+     * environments and types are environment names or creature type names (like humanoid, dragon, etc)
+     */
+    suspend fun findCreatures(terms: List<String>, crs: List<String>, environments: List<String>,
+                              types: List<String>, accountId: Int): List<CoreCreature> = dbQuery {
+        val crIds = crs.map { ChallengeRatings.getChallengeRatingByLabel(it) }.mapNotNull { it?.id }
+        val envIds = environments.map { Environments.getEnvironmentByName(it) }.mapNotNull { it?.id }
+        val typeIds = types.map { CreatureTypes.getCreatureTypeByName(it) }.mapNotNull { it?.id }
+
+        val query = Creatures.innerJoin(CreatureEnvironments)
+            .slice(Creatures.id,Creatures.name,Creatures.challengeRating,Creatures.creatureType,
+            Creatures.alignment,Creatures.size, Creatures.armorClass,Creatures.averageHitpoints,Creatures.swarmName,
+            Creatures.srd,Creatures.isLegacy,Creatures.isLegendary,Creatures.isMythic, Creatures.avatarUrl)
+            .selectAll()
+        if (crIds.isNotEmpty())
+                query.andWhere { Creatures.challengeRating inList crIds }
+        if (types.isNotEmpty())
+                query.andWhere { Creatures.creatureType.lowerCase() inList types }
+        if (envIds.isNotEmpty())
+            query.andWhere {CreatureEnvironments.environment inList envIds }
+        if (terms.isNotEmpty()) {
+            when (terms.size) {
+                2 -> query.andWhere { Creatures.name.lowerCase() like terms[0] or (Creatures.name.lowerCase() like terms[1])}
+                else -> query.andWhere { Creatures.name.lowerCase() like terms[0] }
+            }
+        }
+        query.andWhere { Creatures.accountId eq accountId or (Creatures.srd eq true) }
+        return@dbQuery query.withDistinct(true).orderBy(Creatures.name to SortOrder.ASC)
+            .let { CreatureDO.wrapRows(it) }.map { doToCoreCreature(it) }
+    }
+
+    suspend fun getCreatureAvatars(id: Int, accountId: Int): CreatureAvatars? = dbQuery {
+        val dto = Creatures.slice(Creatures.id,Creatures.avatarUrl, Creatures.largeAvatarUrl, Creatures.basicAvatarUrl)
+            .select { Creatures.id eq id }.firstOrNull()?.let { CreatureDO.wrapRow(it) } ?: return@dbQuery null
+        return@dbQuery CreatureAvatars(dto.id.value, dto.avatarUrl, dto.largeAvatarUrl, dto.basicAvatarUrl)
+    }
+
+    fun doToCoreCreature(dto: CreatureDO): CoreCreature = 
+        CoreCreature(dto.id.value, dto.name, dto.size, dto.alignment, dto.averageHitpoints,
+        ChallengeRatings.getChallengeRatingById(dto.challengeRating)?.label ?: "unknown",
+        dto.avatarUrl, dto.swarmName, dto.armorClass, dto.creatureType, dto.srd, dto.isLegacy, dto.isLegendary,
+        dto.isMythic)
+
+    /**
+     * Load a creature from database
+     */
     suspend fun getCreature(id: Int): Creature? = dbQuery {
         val stats = CreatureStats.select { CreatureStats.creatureId eq id }.let { CreatureStatDO.wrapRows(it) }
         val record = Creatures.select { Creatures.id eq id }.firstOrNull()?.let { CreatureDO.wrapRow(it) }
@@ -23,7 +88,7 @@ object CreatureDao {
             stats.filter { it.stat == 4 }.map { it.value }.singleOrNull() ?: 0,
             stats.filter { it.stat == 5 }.map { it.value }.singleOrNull() ?: 0,
             stats.filter { it.stat == 6 }.map { it.value }.singleOrNull() ?: 0)
-        val withSubSpecies = core.copy(subSpecies = MonsterSubTypes.select { MonsterSubTypes.creatureId eq id }.let { MonsterSubTypeDO.wrapRows(it) }
+        val withSubSpecies = core.copy(subTypes = MonsterSubTypes.select { MonsterSubTypes.creatureId eq id }.let { MonsterSubTypeDO.wrapRows(it) }
             .map { CreatureSubTypes.getCreatureSubTypeById(it.subType)?.label ?: ""}.filter { it.isNotBlank() } )
         val withSpeeds = withSubSpecies.copy(speeds = CreatureMovements.select { CreatureMovements.creatureId eq id }.let { CreatureMovementDO.wrapRows(it) }
             .map { CreatureSpeed(Movements.getMovementById(it.movement), it.speed, it.notes) } )
@@ -37,9 +102,7 @@ object CreatureDao {
             .map { SourceReference(Sources.getSourceById(it.sourceBook).description, it.pageNumber) })
         val withLanguages = withSources.copy(languages = CreatureLanguages.select { CreatureLanguages.creatureId eq id }.let { CreatureLanguageDO.wrapRows(it) }
             .map { "${Languages.getLanguageById(it.language)} ${it.notes}".trim() })
-        val withAvatarUrls = withLanguages.copy(avatarUrl = CreatureAvatars.select { CreatureAvatars.creatureId eq id }.let { CreatureAvatarDO.wrapRows(it) }
-            .map { it.avatar })
-        val withEnvironments = withAvatarUrls.copy(environments = CreatureEnvironments.select { CreatureEnvironments.creatureId eq id }.let { CreatureEnvironmentDO.wrapRows(it) }
+        val withEnvironments = withLanguages.copy(environments = CreatureEnvironments.select { CreatureEnvironments.creatureId eq id }.let { CreatureEnvironmentDO.wrapRows(it) }
             .map { Environments.getEnvironmentById(it.environment)?.label ?: "unknown" })
         val withImmunities = withEnvironments.copy(immunities = CreatureImmunities.select { CreatureImmunities.creatureId eq id }.let { CreatureImmunityDO.wrapRows(it) }
             .map { DamageTypes.getDamageTypeById(it.immunity) })
@@ -143,7 +206,7 @@ object CreatureDao {
 
     private fun doToCreature(cr: CreatureDO, str: Int, dex: Int, con: Int, int: Int, wis: Int, cha: Int): Creature = Creature(
         cr.id.value,
-        cr.species,
+        cr.name,
         listOf(),
         cr.size,
         cr.alignment,
@@ -157,10 +220,13 @@ object CreatureDao {
         Dice.parseRoll(cr.hitpointDice),
         ChallengeRatings.getChallengeRatingById(cr.challengeRating)?.label ?: "unknown",
         cr.swarmName,
-        (cr.swarmSize ?: null)?.let { Sizes.getSizeById(it).label },
+        cr.swarmSize?.let { Sizes.getSizeById(it).label },
         CreatureTypes.getCreatureTypeById(cr.swarmType ?: 0)?.label,
         cr.armorClass,
         cr.armor,
+        cr.avatarUrl,
+        cr.largeAvatarUrl,
+        cr.basicAvatarUrl,
         listOf(),
         listOf(),
         listOf(),
@@ -185,22 +251,31 @@ object CreatureDao {
         listOf(),
         listOf(),
         listOf(),
-        listOf(),
         cr.mythicDescription,
         cr.legendaryDescription,
         listOf(),
         cr.createdOn,
-        cr.updatedOn)
+        cr.updatedOn,
+        cr.official,
+        cr.srd)
+
+    suspend fun getCachedCreatureId(vttId: Int): Int? = dbQuery {
+        return@dbQuery CreatureOrigins.select { CreatureOrigins.originId eq vttId }
+            .map { it[CreatureOrigins.originId] }.singleOrNull()
+    }
 
     suspend fun cacheCreatureFromDdb(cr: ca.kittle.models.integrations.creature.Creature, userAccountId: Int): Int = dbQuery {
+        GlobalScope.launch {
+            cacheAvatars(cr)
+        }
         val crId = Creatures.innerJoin(CreatureOrigins)
             .slice(Creatures.columns) // only select the Actors columns
             .select { CreatureOrigins.originId eq cr.id }
             .mapNotNull { it[Creatures.id].value }.singleOrNull()
             ?: Creatures.insertAndGetId {
-                it[species] = cr.name
+                it[name] = cr.name
                 it[size] = Sizes.getSizeById(cr.sizeId).label
-                it[alignment] = Alignments.getAlignmentById(cr.alignmentId)?.label ?: Alignment.UNALIGNED.label
+                it[alignment] = cr.alignmentId?.let { it1 -> Alignments.getAlignmentById(it1)?.label } ?: Alignment.UNALIGNED.label
                 it[averageHitpoints] = cr.averageHitPoints
                 it[hitpointDice] = cr.hitPointDice.diceString
                 it[challengeRating] = ChallengeRatings.getChallengeRatingById(cr.challengeRatingId)?.id ?: 0
@@ -213,13 +288,15 @@ object CreatureDao {
                 it[isLegendary] = cr.isLegendary
                 it[isMythic] = cr.isMythic
                 it[hasLair] = cr.hasLair
+                it[avatarUrl] = cr.avatarUrl
+                it[largeAvatarUrl] = cr.largeAvatarUrl
+                it[basicAvatarUrl] = cr.basicAvatarUrl
                 it[swarmName] = cr.swarm?.name
                 it[swarmSize] = if (cr.swarm?.sizeId != 99) cr.swarm?.sizeId else null
                 it[swarmType] = cr.swarm?.typeId
-                it[lairDescription] = cr.lairDescription ?: ""
-//                it[legendaryDescription] = ...
-//                it[mythicDescription] = ...
-                it[official] = false
+                it[lairDescription] = cr.lairDescription.stripHtml().stripNewLine() ?: ""
+                it[official] = true
+                it[srd] = false
                 it[mythicDescription] = ActionParser.parseDescription(cr.mythicActionsDescription ?: "")
                 it[legendaryDescription] = ActionParser.parseDescription(cr.legendaryActionsDescription ?: "")
                 it[createdOn] = Database.now
@@ -302,18 +379,6 @@ object CreatureDao {
                 it[creatureId] = crId
             }
         }
-        if (!cr.avatarUrl.isBlank()) CreatureAvatars.insert {
-            it[avatar] = cr.avatarUrl
-            it[creatureId] = crId
-        }
-        if (!cr.largeAvatarUrl.isNullOrBlank()) CreatureAvatars.insert {
-            it[avatar] = cr.largeAvatarUrl
-            it[creatureId] = crId
-        }
-        if (!cr.basicAvatarUrl.isNullOrBlank()) CreatureAvatars.insert {
-            it[avatar] = cr.basicAvatarUrl
-            it[creatureId] = crId
-        }
         cr.damageAdjustments.forEach { d->
             val da = DamageAdjustments.getDamageAdjustmentById(d)
             when (da?.type) {
@@ -356,7 +421,7 @@ object CreatureDao {
             when (s) {
                 is Trait -> {
                     CreatureTraits.insert {
-                        it[trait] = s.name
+                        it[trait] = s.name.stripHtml().stripNewLine()
                         it[type] = 1
                         it[description] = s.description
                         it[activationType] = s.activationType?.id
@@ -367,7 +432,7 @@ object CreatureDao {
                 }
                 is RollableTrait -> {
                     CreatureTraits.insert {
-                        it[trait] = s.name
+                        it[trait] = s.name.stripHtml().stripNewLine()
                         it[type] = 2
                         it[description] = s.description
                         it[activationType] = s.activationType?.id
@@ -382,7 +447,7 @@ object CreatureDao {
                             it[condition] = r.condition?.name
                             it[saveDc] = r.saveDc
                             it[saveAbility] = r.saveAbility
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
@@ -390,7 +455,7 @@ object CreatureDao {
                 is SpellsPerDayTrait -> {
                     val traitType = 3
                     CreatureTraits.insert {
-                        it[trait] = s.name
+                        it[trait] = s.name.stripHtml().stripNewLine()
                         it[type] = traitType
                         it[description] = s.description
                         it[resetType] = s.resets?.id
@@ -401,7 +466,7 @@ object CreatureDao {
                             it[order] = spell.order
                             it[uses] = spell.uses
                             it[spells] = spell.spells.toString().replace("*", "").trim()
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
@@ -409,7 +474,7 @@ object CreatureDao {
                 is SpellSlotsTrait -> {
                     val traitType = 4
                     CreatureTraits.insert {
-                        it[trait] = s.name
+                        it[trait] = s.name.stripHtml().stripNewLine()
                         it[type] = traitType
                         it[description] = s.description
                         it[resetType] = s.resets?.id
@@ -420,7 +485,7 @@ object CreatureDao {
                             it[order] = spell.order
                             it[uses] = spell.uses
                             it[spells] = spell.spells.toString().replace("*", "").trim()
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
@@ -443,7 +508,7 @@ object CreatureDao {
             when (s) {
                 is Feature -> {
                     CreatureFeatures.insert {
-                        it[feature] = s.name
+                        it[feature] = s.name.stripHtml().stripNewLine()
                         it[type] = 1
                         it[description] = s.description
                         it[activationType] = s.activationType.id
@@ -454,7 +519,7 @@ object CreatureDao {
                 }
                 is RollableFeature -> {
                     CreatureFeatures.insert {
-                        it[feature] = s.name
+                        it[feature] = s.name.stripHtml().stripNewLine()
                         it[type] = 2
                         it[description] = s.description
                         it[activationType] = s.activationType.id
@@ -469,14 +534,14 @@ object CreatureDao {
                             it[condition] = r.condition?.name
                             it[saveDc] = r.saveDc
                             it[saveAbility] = r.saveAbility
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
                 }
                 is AttackAction -> {
                     CreatureFeatures.insert {
-                        it[feature] = s.name
+                        it[feature] = s.name.stripHtml().stripNewLine()
                         it[type] = 3
                         it[description] = s.description
                         it[activationType] = s.activationType.id
@@ -489,7 +554,7 @@ object CreatureDao {
                         it[toHit] = s.toHit
                         it[range] = s.range
                         it[target] = s.target
-                        it[featureName] = s.name
+                        it[featureName] = s.name.stripHtml().stripNewLine()
                         it[creatureId] = crId
                     }
                     s.rolls.forEach {r->
@@ -499,14 +564,14 @@ object CreatureDao {
                             it[condition] = r.condition?.name
                             it[saveDc] = r.saveDc
                             it[saveAbility] = r.saveAbility
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
                 }
                 is SpellsPerDayFeature -> {
                     CreatureFeatures.insert {
-                        it[feature] = s.name
+                        it[feature] = s.name.stripHtml().stripNewLine()
                         it[type] = 4
                         it[description] = s.description
                         it[activationType] = s.activationType.id
@@ -518,14 +583,14 @@ object CreatureDao {
                             it[order] = spell.order
                             it[uses] = spell.uses
                             it[spells] = spell.spells.toString().replace("*", "").trim()
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
                 }
                 is SpellSlotsFeature -> {
                     CreatureFeatures.insert {
-                        it[feature] = s.name
+                        it[feature] = s.name.stripHtml().stripNewLine()
                         it[type] = 5
                         it[description] = s.description
                         it[activationType] = s.activationType.id
@@ -537,7 +602,7 @@ object CreatureDao {
                             it[order] = spell.order
                             it[uses] = spell.uses
                             it[spells] = spell.spells.toString().replace("*", "").trim()
-                            it[featureName] = s.name
+                            it[featureName] = s.name.stripHtml().stripNewLine()
                             it[creatureId] = crId
                         }
                     }
@@ -547,19 +612,44 @@ object CreatureDao {
         return@dbQuery crId
     }
 
-
-    // actions (actions|bonus|reactions|mythic|legendary)
-
-
-    suspend fun creatureOrigin(newCreatureId: Int, ddbCreatureUrl: String, vttId: Int) = Database.dbQuery {
-        CreatureOrigins.select { CreatureOrigins.creatureId eq newCreatureId }
-            .mapNotNull { it }
-            .singleOrNull()
-            ?: CreatureOrigins.insert {
-                it[originId] = vttId
-                it[originUrl] = ddbCreatureUrl
-                it[creatureId] = newCreatureId
-            }
+    suspend fun cacheAvatars(creature: ca.kittle.models.integrations.creature.Creature) {
+        val url = DdbCreature.fixCreatureUrl(creature.avatarUrl)
+        val large = DdbCreature.fixCreatureUrl(creature.largeAvatarUrl ?: "")
+        val basic = DdbCreature.fixCreatureUrl(creature.basicAvatarUrl ?: "")
+        val name = creature.name
+        val folder = "./avatars/${name.take(1).lowercase()}"
+        if (Files.exists(Paths.get("$folder/$name-${Url(url).pathSegments.last()}"))) {
+            logger.debug { "File $folder/$name-${Url(url).pathSegments.last()} already downloaded."}
+            return
+        }
+        logger.debug { "Caching creature avatars for $name" }
+        if (url.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing avatar for $name in $folder/" }
+            val u = Url(url)
+            val file = File("$folder/$name-${u.pathSegments.last()}")
+            client.get(url).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing avatar from $url" }
+            client.close()
+        }
+        if (large.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing large avatar for $name in $folder/" }
+            val u = Url(large)
+            val file = File("$folder/$name-large-${u.pathSegments.last()}")
+            client.get(large).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing large avatar from $large" }
+            client.close()
+        }
+        if (basic.isNotBlank()) {
+            val client = HttpClient(CIO)
+            logger.debug { "Storing basic avatar for $name in $folder/" }
+            val u = Url(basic)
+            val file = File("$folder/$name-basic-${u.pathSegments.last()}")
+            client.get(basic).bodyAsChannel().copyAndClose(file.writeChannel())
+            logger.debug { "Finished storing basic avatar from $basic" }
+            client.close()
+        }
     }
 
 

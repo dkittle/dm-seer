@@ -37,3 +37,7 @@ curl -v -X POST http://localhost:3000/proxy/monsters -H"Content-Type: applicatio
 ```
 
 
+```shell
+curl -v http://localhost:8000/api/creature/1 -H"Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NzIzNzM2NDcsInVzZXJuYW1lIjoiRG9uRGFETSJ9.dOq53ZaqXuc80ccrICkc46qJbUCuOQGw1KjSp6v8Um8" -H"Content-Type: application/json" -H"user_session: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NzIzNzM2NDcsInVzZXJuYW1lIjoiRG9uRGFETSJ9.dOq53ZaqXuc80ccrICkc46qJbUCuOQGw1KjSp6v8Um8"   
+
+```

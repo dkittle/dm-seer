@@ -14,11 +14,11 @@ data class Monster (
   @SerialName("order"              ) var order              : Int,
   @SerialName("quantity"           ) var quantity           : Int,
   @SerialName("notes"              ) var notes              : String? = null,
-  @SerialName("index"              ) var index              : Int,
+  @SerialName("index"              ) var index              : Int?,
   @SerialName("currentHitPoints"   ) var currentHitPoints   : Int,
   @SerialName("temporaryHitPoints" ) var temporaryHitPoints : Int,
   @SerialName("maximumHitPoints"   ) var maximumHitPoints   : Int,
-  @SerialName("initiative"         ) var initiative         : Int,
+  @SerialName("initiative"         ) var initiative         : Int?,
 
 )
 

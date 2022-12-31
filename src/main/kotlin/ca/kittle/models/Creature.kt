@@ -1,21 +1,18 @@
 package ca.kittle.models
 
-import ca.kittle.models.CreatureSkills.index
-import ca.kittle.models.CreatureTraits.nullable
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Table.Dual.nullable
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 
 @Serializable
 data class Creature (
     val id: Int,
-    val species: String,
-    val subSpecies: List<String>,
+    val name: String,
+    val subTypes: List<String>,
     val size: String,
     val alignment: String,
     val str: Int,
@@ -32,6 +29,9 @@ data class Creature (
     val swarmType: String?,
     val armorClass: Int,
     val armor: String,
+    val avatarUrl : String,
+    val largeAvatarUrl : String?,
+    val basicAvatarUrl : String?,
     val speeds: List<CreatureSpeed> = arrayListOf(),
     val senses: List<String> = arrayListOf(),
     val savingThrows: List<String> = arrayListOf(),
@@ -45,7 +45,6 @@ data class Creature (
     val isLegendary: Boolean,
     val isMythic: Boolean,
     val hasLair: Boolean,
-    val avatarUrl: List<String>,
     val environments: List<String> = arrayListOf(),
     val immunities: List<DamageType> = arrayListOf(),
     val resistances: List<DamageType> = arrayListOf(),
@@ -61,7 +60,9 @@ data class Creature (
     val legendaryDescription: String,
     val tags: List<String> = arrayListOf(),
     val createdOn: LocalDateTime,
-    val updatedOn: LocalDateTime
+    val updatedOn: LocalDateTime,
+    val official: Boolean,
+    val srd: Boolean
 ) {
     companion object {
         fun proficiencyBonus(cr: String): Int {
@@ -124,45 +125,41 @@ data class Creature (
 @Serializable
 data class CoreCreature (
     val id: Int,
-    val species: String,
+    val name: String,
     val size: String,
     val alignment: String,
-    val str: Int,
-    val dex: Int,
-    val con: Int,
-    val int: Int,
-    val wis: Int,
-    val cha: Int,
     val averageHitPoints: Int,
-    val hpDice: Dice,
     val challengeRating: String,
+    val avatarUrl: String,
     val swarmName: String?,
-    val swarmSize: Int?,
-    val swarmType: Int?,
     val armorClass: Int,
-    val armor: String,
     val creatureType: String,
-    val passivePerception: Int,
-    val isHomebrew: Boolean,
+    val srd: Boolean,
     val isLegacy: Boolean,
     val isLegendary: Boolean,
-    val isMythic: Boolean,
-    val hasLair: Boolean,
-    val mythicDescription: String,
-    val legendaryDescription: String,
-    val createdOn: LocalDateTime,
-    val updatedOn: LocalDateTime
+    val isMythic: Boolean
+)
+
+@Serializable
+data class CreatureAvatars (
+    val id: Int,
+    val avatarUrl: String,
+    val largeAvatarUrl: String?,
+    val basicAvatarUrl: String?
 )
 
 object Creatures : IntIdTable("creatures") {
-    val species = text("species")
+    val name = text("name")
     val size = text("size")
     val alignment = text("alignment")
     val averageHitpoints = integer("average_hitpoints")
     val hitpointDice = text("hitpoint_dice")
-    val challengeRating = integer("challenge_rating")
+    val challengeRating = integer("challenge_rating").index()
     val armorClass = integer("armor_class")
     val armor = text("armor")
+    val avatarUrl = text("avatar_url")
+    val largeAvatarUrl= text("large_avatar_url").nullable()
+    val basicAvatarUrl = text("basic_avatar_url").nullable()
     val creatureType = text("creature_type")
     val passivePerception = integer("passive_perception")
     val isHomebrew = bool("is_homebrew")
@@ -177,6 +174,7 @@ object Creatures : IntIdTable("creatures") {
     val createdOn = datetime("created_on")
     val updatedOn = datetime("updated_on")
     val official = bool("official")
+    val srd = bool("srd")
     val legendaryDescription = text("legendary_description")
     val mythicDescription = text("mythic_desription")
     val accountId = reference("account_id", Accounts)
@@ -184,7 +182,7 @@ object Creatures : IntIdTable("creatures") {
 
 class CreatureDO(id: EntityID<Int>): IntEntity(id) {
     companion object : IntEntityClass<CreatureDO>(Creatures)
-    var species by Creatures.species
+    var name by Creatures.name
     var size by Creatures.size
     var alignment by Creatures.alignment
     var averageHitpoints by Creatures.averageHitpoints
@@ -192,6 +190,9 @@ class CreatureDO(id: EntityID<Int>): IntEntity(id) {
     var challengeRating by Creatures.challengeRating
     var armorClass by Creatures.armorClass
     var armor by Creatures.armor
+    var avatarUrl by Creatures.avatarUrl
+    var largeAvatarUrl by Creatures.largeAvatarUrl
+    var basicAvatarUrl by Creatures.basicAvatarUrl
     var creatureType by Creatures.creatureType
     var passivePerception by Creatures.passivePerception
     var isHomebrew by Creatures.isHomebrew
@@ -206,6 +207,7 @@ class CreatureDO(id: EntityID<Int>): IntEntity(id) {
     var createdOn by Creatures.createdOn
     var updatedOn by Creatures.updatedOn
     var official by Creatures.official
+    var srd by Creatures.srd
     var legendaryDescription by Creatures.legendaryDescription
     var mythicDescription by Creatures.mythicDescription
     var accountId by AccountDO referencedOn Creatures.accountId
@@ -213,7 +215,7 @@ class CreatureDO(id: EntityID<Int>): IntEntity(id) {
 
 
 object CreatureOrigins : IntIdTable("creature_origins") {
-    val originId = integer("origin_id")
+    val originId = integer("origin_id").index()
     val originUrl = text("origin_url")
     val creatureId = reference("creature_id", Creatures)
 }
@@ -276,7 +278,7 @@ class CreatureSaveDO(id: EntityID<Int>): IntEntity(id) {
 }
 
 object CreatureSkills : IntIdTable("creature_skills") {
-    val skill = integer("skill")
+    val skill = integer("skill").index()
     val value = integer("value")
     val creatureId = reference("creature_id", Creatures)
 }
@@ -290,7 +292,7 @@ class CreatureSkillDO(id: EntityID<Int>): IntEntity(id) {
 
 
 object CreatureMovements : IntIdTable("creature_movements") {
-    val movement = integer("movement")
+    val movement = integer("movement").index()
     val speed = integer("speed")
     val notes = text("notes")
     val creatureId = reference("creature_id", Creatures)
@@ -318,7 +320,7 @@ class CreatureLanguageDO(id: EntityID<Int>): IntEntity(id) {
 }
 
 object CreatureSources : IntIdTable("creature_sources") {
-    val sourceBook = integer("source")
+    val sourceBook = integer("source").index()
     val pageNumber = integer("page_number")
     val creatureId = reference("creature_id", Creatures)
 }
@@ -331,7 +333,7 @@ class CreatureSourceDO(id: EntityID<Int>): IntEntity(id) {
 }
 
 object CreatureTags : IntIdTable("creature_tags") {
-    val tag = text("tag")
+    val tag = text("tag").index()
     val creatureId = reference("creature_id", Creatures)
 }
 
@@ -341,19 +343,8 @@ class CreatureTagDO(id: EntityID<Int>): IntEntity(id) {
     var creatureId = CreatureDO referencedOn CreatureTags.creatureId
 }
 
-object CreatureAvatars : IntIdTable("creature_avatars") {
-    val avatar = text("avatar")
-    val creatureId = reference("creature_id", Creatures)
-}
-
-class CreatureAvatarDO(id: EntityID<Int>): IntEntity(id) {
-    companion object : IntEntityClass<CreatureAvatarDO>(CreatureAvatars)
-    var avatar by CreatureAvatars.avatar
-    var creatureId = CreatureDO referencedOn CreatureAvatars.creatureId
-}
-
 object CreatureEnvironments : IntIdTable("creature_environments") {
-    val environment = integer("environment")
+    val environment = integer("environment").index()
     val creatureId = reference("creature_id", Creatures)
 }
 
@@ -442,7 +433,7 @@ class CreatureConditionImmunityDO(id: EntityID<Int>): IntEntity(id) {
  * list of spells - to find the list of spells in Creature Spells
  */
 object CreatureTraits : IntIdTable("creature_traits") {
-    val trait = text("trait")
+    val trait = text("trait").index()
     val type = integer("type")
     val description = text("description")
     val activationType = integer("activation_type").nullable()
@@ -543,7 +534,7 @@ class CreatureSpellDO(id: EntityID<Int>): IntEntity(id) {
  * list of spells - to find the list of spells in Creature Spells
  */
 object CreatureFeatures : IntIdTable("creature_features") {
-    val feature = text("feature")
+    val feature = text("feature").index()
     val type = integer("type")
     val description = text("description")
     val activationType = integer("activation_type")

@@ -22,6 +22,9 @@ object Database {
 
     fun init() {
         Database.connect(hikari())
+//        transaction {
+//            SchemaUtils.create(Encounterees)
+//        }
     }
 
     fun initDb() {
@@ -34,8 +37,8 @@ object Database {
                 CreatureStats, CreatureSaves, CreatureSkills, CreatureSenses, CreatureMovements,
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
-                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
-                CreatureConditionImmunities, CreatureAttacks)
+                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureConditionImmunities,
+                CreatureAttacks, Encounterees)
 
             SchemaUtils.create(Campaigns, CampaignOrigins,
                 Encounters, EncounterOrigins, Locations, Rooms, Combats, Combatants,
@@ -43,8 +46,8 @@ object Database {
                 CreatureStats, CreatureSaves, CreatureSkills, CreatureSenses, CreatureMovements,
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
-                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureAvatars,
-                CreatureConditionImmunities, CreatureAttacks)
+                CreatureFeatures, CreatureRolls, CreatureSpells, CreatureConditionImmunities,
+                CreatureAttacks, Encounterees)
             commit()
             logger.debug {"Schema created" }
         }
