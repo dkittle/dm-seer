@@ -54,7 +54,7 @@ fun Application.module(testing: Boolean = false) {
     install(Sessions) {
         val secretEncryptKey = hex("0116283ba45866878cc9aa9b4c0d0eff")
         val secretSignKey = hex("6319b67a626945a1908f48236b89")
-        header<UserSession>("user_session") {
+        header<UserSession>("User-Session") {
             transform(SessionTransportTransformerEncrypt(secretEncryptKey, secretSignKey))
         }
     }

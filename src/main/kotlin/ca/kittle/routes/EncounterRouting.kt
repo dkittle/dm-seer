@@ -11,6 +11,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import mu.KotlinLogging
 
 
 fun Route.encounterRouting() {
@@ -38,6 +39,11 @@ fun Route.encounterRouting() {
     authenticate {
         route("/api/encounter") {
             get("/{id}") {
+                val logger = KotlinLogging.logger {}
+                logger.info { "Retrieving an encounter" }
+                logger.info { call.request.headers.get("User-Agent") }
+                logger.info { call.request.headers.get("Authorization") }
+                logger.info { call.request.headers.get("User-Session") }
                 val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
                 return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 val id = call.parameters["id"] ?: return@get call.respondText(

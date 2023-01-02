@@ -54,6 +54,7 @@ object Database {
     }
 
     private fun hikari(): HikariDataSource {
+        logger.info { "Connecting to database at ${jdbcConnectString()}" }
         val config = HikariConfig()
         config.driverClassName = "org.postgresql.Driver"
         config.jdbcUrl = jdbcConnectString()
@@ -73,7 +74,7 @@ object Database {
 }
 
 fun jdbcConnectString(): String {
-    return "jdbc:postgresql://$hostname:$port/$db"
+    return "jdbc:postgresql://$hostname:$port/dmseer"
 }
 
 private val password: String

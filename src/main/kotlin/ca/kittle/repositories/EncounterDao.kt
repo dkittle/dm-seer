@@ -42,9 +42,7 @@ object EncounterDao {
                 Accounts.username, Campaigns.name, Locations.name, Rooms.name, DndSources.label)
             .select{ Encounters.id eq id }
             .andWhere { Encounters.accountId eq userId or not(Encounters.private) }
-            .map { dtoToEncounter(it) }.singleOrNull()
-        if (encounter == null)
-            return@dbQuery null
+            .map { dtoToEncounter(it) }.singleOrNull() ?: return@dbQuery null
         val critters = Encounterees.slice(Encounterees.name.count()).select{ Encounterees.encounterId eq encounter.id }
             .map { it[Encounterees.name.count()].toInt()}.singleOrNull() ?: 0
         return@dbQuery encounter.copy(creatures = critters)
