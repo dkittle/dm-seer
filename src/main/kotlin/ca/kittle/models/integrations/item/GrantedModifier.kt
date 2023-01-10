@@ -1,7 +1,7 @@
 package ca.kittle.models.integration.item
 
 import ca.kittle.models.Dice
-import ca.kittle.models.integrations.item.Duration
+import ca.kittle.models.Duration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

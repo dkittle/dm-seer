@@ -15,9 +15,11 @@ docker start -a postgres
 
 ## Set up Elastic Beanstalk environment
 
-`eb create dm-seer --timeout 20 -i t2.micro --cname dm-seer --elb-type application --database.engine postgres --database.instance db.t3.micro --database.username postgres --database.password *any password*`
+`eb create b4b-dev --timeout 20 -i t2.micro --cname b4b-dev --elb-type application --database.engine postgres --database.instance db.t3.micro --database.username postgres --database.password *any password*`
 
 `sudo yum install postgresql-devel.x86_64`
+
+`psql -h [hostname] -U postgres -d dmseer -f dmseer.tar`
 
 Edit Load Balancer config to set monitoring process endpoint to `/api/health`
 

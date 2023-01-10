@@ -1,5 +1,7 @@
 package ca.kittle.integrations.spells
 
+import ca.kittle.models.Activation
+import ca.kittle.models.Duration
 import ca.kittle.models.integrations.Source
 import ca.kittle.models.integrations.character.Conditions
 import kotlinx.serialization.SerialName
@@ -13,8 +15,8 @@ data class Definition (
   @SerialName("name"                   ) var name                   : String?              = null,
   @SerialName("level"                  ) var level                  : Int?                 = null,
   @SerialName("school"                 ) var school                 : String?              = null,
-  @SerialName("duration"               ) var duration               : Duration?            = Duration(),
-  @SerialName("activation"             ) var activation             : Activation?          = Activation(),
+  @SerialName("duration"               ) var duration               : Duration?,
+  @SerialName("activation"             ) var activation             : Activation?,
   @SerialName("range"                  ) var range                  : Range?               = Range(),
   @SerialName("asPartOfWeaponAttack"   ) var asPartOfWeaponAttack   : Boolean?             = null,
   @SerialName("description"            ) var description            : String?              = null,

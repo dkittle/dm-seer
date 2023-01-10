@@ -1,5 +1,6 @@
 package ca.kittle.models.integrations.character
 
+import ca.kittle.models.Activation
 import ca.kittle.models.integrations.Source
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

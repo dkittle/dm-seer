@@ -6,6 +6,7 @@ import ca.kittle.repositories.AccountDao
 import ca.kittle.routes.support.FALSE
 import ca.kittle.routes.support.Status
 import ca.kittle.routes.support.TRUE
+import com.auth0.jwt.exceptions.TokenExpiredException
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -27,6 +28,19 @@ fun Route.accountRouting(identityAuth: IdentityAuth) {
         val ddb = AccountDao.getDDBAccount(account.id)
         call.sessions.set(UserSession(account.id, account.username, ddb?.vttId ?: 0, ddb?.vttKey ?: ""))
         call.respond(mapOf("token" to identityAuth.signedToken(account.username)))
+    }
+
+    post("/api/refresh") {
+        val authToken = call.request.header("Authorization")
+        try {
+            identityAuth.verifier.verify(authToken?.drop(7))
+        }
+        catch (ignored: TokenExpiredException) { }
+        val (accountId, username, vttId, vttKey) = call.sessions.get<UserSession>() ?:
+            return@post call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+//        val ddb = AccountDao.getDDBAccount(vttId)
+        call.sessions.set(UserSession(accountId, username, vttId, vttKey))
+        call.respond(mapOf("token" to identityAuth.signedToken(username)))
     }
 
     post("/api/register") {

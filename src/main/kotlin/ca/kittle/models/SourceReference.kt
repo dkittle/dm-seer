@@ -10,6 +10,11 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 @Serializable
 data class SourceReference(val source: String, val pageNumber: Int)
 
+@Serializable
+data class ItemSource(val sourceId: Int, val pageNumber: Int?, val sourceType: Int)
+
+@Serializable
+data class SpellSource(val sourceId: Int, val pageNumber: Int?, val sourceType: Int)
 
 object DndSources : IntIdTable("sources") {
     val label = text("label")

@@ -71,12 +71,10 @@ kotlin {
     }
 }
 
-//tasks.withType<KotlinCompile> {
-//    kotlinOptions.jvmTarget = "17"
-//}
 
 tasks.withType<ShadowJar> {
     archiveFileName.set("app.jar")
+
 }
 
 tasks.test {

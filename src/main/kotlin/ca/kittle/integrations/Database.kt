@@ -1,6 +1,7 @@
 package ca.kittle.integrations
 
 import ca.kittle.models.*
+import ca.kittle.models.spell.*
 import ca.kittle.util.EnvUtil
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -23,7 +24,8 @@ object Database {
     fun init() {
         Database.connect(hikari())
 //        transaction {
-//            SchemaUtils.create(Encounterees)
+//            SchemaUtils.drop(Items, ItemSources, ItemTags, ItemModifiers,WeaponBehaviors, ItemWeaponProperties)
+//            SchemaUtils.create(Items, ItemSources, ItemTags, ItemModifiers,WeaponBehaviors, ItemWeaponProperties)
 //        }
     }
 
@@ -38,7 +40,9 @@ object Database {
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
                 CreatureFeatures, CreatureRolls, CreatureSpells, CreatureConditionImmunities,
-                CreatureAttacks, Encounterees)
+                CreatureAttacks, Encounterees,
+                Items, ItemSources, ItemTags, ItemModifiers,WeaponBehaviors, ItemWeaponProperties,
+                Spells, KnownSpells, AtHigherLevels, SpellModifiers, SpellConditions, SpellSources, SpellTags)
 
             SchemaUtils.create(Campaigns, CampaignOrigins,
                 Encounters, EncounterOrigins, Locations, Rooms, Combats, Combatants,
@@ -47,7 +51,9 @@ object Database {
                 MonsterSubTypes, CreatureLanguages, CreatureResistances, CreatureImmunities,
                 CreatureVulnerabilities, CreatureTags, CreatureSources, CreatureTraits,
                 CreatureFeatures, CreatureRolls, CreatureSpells, CreatureConditionImmunities,
-                CreatureAttacks, Encounterees)
+                CreatureAttacks, Encounterees,
+                Items, ItemSources, ItemTags, ItemModifiers,WeaponBehaviors, ItemWeaponProperties,
+                Spells, KnownSpells, AtHigherLevels, SpellModifiers, SpellConditions, SpellSources, SpellTags)
             commit()
             logger.debug {"Schema created" }
         }

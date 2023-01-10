@@ -7,7 +7,7 @@ import java.util.*
 
 
 class IdentityAuth(secret: String) {
-    private val validityInMs = 36_000_00 * 1
+    private val validityInMs = 36_000_00 * 10
     private val algorithm = Algorithm.HMAC256(secret)
 
     val verifier: JWTVerifier = JWT.require(algorithm).build()

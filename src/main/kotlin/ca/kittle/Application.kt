@@ -43,7 +43,6 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 val identityAuth = IdentityAuth(EnvUtil.stringFromEnvironment("JWT_SECRET", ""))
 
-@KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {

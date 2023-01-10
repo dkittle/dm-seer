@@ -1,6 +1,7 @@
 package ca.kittle.models
 
 import ca.kittle.models.Combatants.nullable
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -50,6 +51,21 @@ enum class CharacterSpecies(val id: Int, val label: String, val avatarUrl: Strin
     DRACONICRACES(30, "Draconic Races", null),
     LINEAGES(31, "Lineages", null)
 }
+
+@Serializable
+data class Duration (
+    var durationInterval : Int,
+    var durationUnit     : String?,
+    var durationType     : String?
+)
+
+@Serializable
+data class Range (
+    var origin     : String,
+    var rangeValue : Int?    = null,
+    var aoeType    : String? = null,
+    var aoeValue   : Int? = null
+)
 
 class SpellRangeTypes {
     companion object {
@@ -600,6 +616,12 @@ enum class SpellComponent(val id: Int, val label: String, val shortName: String,
     ROYALTY(4, "Royalty", "R", "To cast a spell that employs a royalty component (including using a spell scroll or other magic item that stores such a spell), a caster must have sufficient funds on their person. The cost of the casting is set by the caster who creates the spell, but is typically 1 gp per spell slot level. When the spell is cast, the royalty is magically transported to a coffer or other object designated by the creating spellcaster. This payment is made whether the caster using the spell is aware of the royalty component or not. If the caster does not have sufficient funds, the spell is not lost but it cannot be cast.Though many casters have tried to circumvent the royalty component, none have ever fully succeeded. However, it is said that a character can attempt a DC 15 Intelligence (Arcana) check while casting a spell with a royalty component. With a successful check, the payment is taken from a random creature within 10 feet of the caster, without that creature’s knowledge.")
 }
 
+@Serializable
+data class Activation (
+    var activationTime : Int,
+    var activationType : Int
+)
+
 class ActivationTypes {
     companion object {
         fun getActivationTypeById(id: Int): ActivationType =
@@ -633,8 +655,6 @@ class BasicActions {
         }
     }
 }
-
-data class Activation(val time: Int, val type: Int)
 
 enum class BasicAction(val id: Int, val label: String, val description: String, val activation: Activation?) {
     ATTACK(1, "Attack", "The most common action to take in combat is the Attack action, whether you are swinging a sword, firing an arrow from a bow, or brawling with your fists.With this action, you make one melee or ranged attack. See the \"Making an Attack\" section for the rules that govern attacks.Certain features, such as the Extra Attack feature of the fighter, allow you to make more than one attack with this action.", Activation(0, 1)),

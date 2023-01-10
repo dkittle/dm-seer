@@ -18,6 +18,13 @@ fun Route.encounterRouting() {
 
     authenticate {
         route("/api/encounters") {
+            get("") {
+                val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                val encounter = EncounterDao.encounters(accountId) ?:
+                return@get call.respondText("Could not get your encounters", status = HttpStatusCode.BadRequest)
+                call.respond(encounter)
+            }
             get("/ddb") {
                 val (accountId, _, vttId, vttKey) = call.sessions.get<UserSession>() ?:
                     return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
@@ -38,14 +45,20 @@ fun Route.encounterRouting() {
 
     authenticate {
         route("/api/encounter") {
-            get("/{id}") {
-                val logger = KotlinLogging.logger {}
-                logger.info { "Retrieving an encounter" }
-                logger.info { call.request.headers.get("User-Agent") }
-                logger.info { call.request.headers.get("Authorization") }
-                logger.info { call.request.headers.get("User-Session") }
+
+            get("/{id}/creatures") {
                 val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
-                return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
+                val id = call.parameters["id"] ?: return@get call.respondText(
+                    "Missing encounter id", status = HttpStatusCode.BadRequest
+                )
+                val encounter = CreatureDao.getCreaturesForEncounter(id.toInt())
+                call.respond(encounter)
+            }
+
+            get("/{id}") {
+                val (accountId, _, _, _) = call.sessions.get<UserSession>() ?:
+                    return@get call.respondText(NO_SESSION, status = HttpStatusCode.Unauthorized)
                 val id = call.parameters["id"] ?: return@get call.respondText(
                     "Missing encounter id", status = HttpStatusCode.BadRequest
                 )

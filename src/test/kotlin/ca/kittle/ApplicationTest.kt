@@ -16,8 +16,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ApplicationTest {
-    @Test
-    fun testRoot() = testApplication {
+//    @Test
+//    fun testRoot() = testApplication {
 //        application {
 //            configureRouting()
 //        }
@@ -31,5 +31,5 @@ class ApplicationTest {
 //            assertEquals(HttpStatusCode.OK, status)
 //            assertEquals(OK.toString(), bodyAsText())
 //        }
-    }
+//    }
 }

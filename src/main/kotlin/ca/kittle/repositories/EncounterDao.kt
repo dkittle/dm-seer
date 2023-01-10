@@ -43,10 +43,32 @@ object EncounterDao {
             .select{ Encounters.id eq id }
             .andWhere { Encounters.accountId eq userId or not(Encounters.private) }
             .map { dtoToEncounter(it) }.singleOrNull() ?: return@dbQuery null
-        val critters = Encounterees.slice(Encounterees.name.count()).select{ Encounterees.encounterId eq encounter.id }
-            .map { it[Encounterees.name.count()].toInt()}.singleOrNull() ?: 0
-        return@dbQuery encounter.copy(creatures = critters)
+        return@dbQuery encounter.copy(creatures = countCritters(encounter.id))
     }
+
+    suspend fun encounters(userId: Int): List<Encounter>? = dbQuery {
+        logger.debug { "Retrieving encounters for a user" }
+        val encounters = Encounters
+            .join(Accounts, JoinType.LEFT, additionalConstraint = { Accounts.id eq Encounters.accountId })
+            .join(Campaigns, JoinType.LEFT, additionalConstraint = { Campaigns.id eq Encounters.campaignId })
+            .join(Locations, JoinType.LEFT, additionalConstraint = { Locations.id eq Encounters.locationId })
+            .join(Rooms, JoinType.LEFT, additionalConstraint = { Rooms.id eq Encounters.roomId })
+            .join(DndSources, JoinType.LEFT, additionalConstraint = { DndSources.id eq Encounters.sourceId })
+            .slice(Encounters.id, Encounters.name, Encounters.suggestedAcl, Encounters.description, Encounters.private,
+                Encounters.dmgDifficulty, Encounters.sfDifficulty, Encounters.dceDifficulty, Encounters.dcDifficulty,
+                Encounters.luDifficulty, Encounters.official, Encounters.sourcePage, Encounters.createdOn, Encounters.updatedOn,
+                Accounts.username, Campaigns.name, Locations.name, Rooms.name, DndSources.label)
+            .selectAll()
+            .andWhere { Encounters.accountId eq userId or not(Encounters.private) }
+            .orderBy( Encounters.private to SortOrder.DESC )
+            .orderBy( Encounters.name to SortOrder.ASC )
+            .map { dtoToEncounter(it) }
+        return@dbQuery encounters.map { it.copy(creatures = countCritters(it.id)) }
+    }
+
+    fun countCritters(id: Int): Int =
+        Encounterees.slice(Encounterees.name.count()).select{ Encounterees.encounterId eq id }
+            .map { it[Encounterees.name.count()].toInt()}.singleOrNull() ?: 0
 
     private fun dtoToEncounter(row: ResultRow): Encounter =
         Encounter(row[Encounters.id].value,
@@ -71,49 +93,7 @@ object EncounterDao {
             row[DndSources.label] ?: ""
         )
 
-//
-//    fun encounters(accountId: Long?): List<Encounter> {
-//        logger.debug { "Retrieving all encounters for current user." }
-//        val result = arrayListOf<Encounter>()
-//        db.connect().use { conn ->
-//            conn.createStatement().use { stmt ->
-//                stmt.executeQuery(encounterQuery(null, accountId)).use { rs ->
-//                    while (rs.next())
-//                        result.add(readEncounter(rs))
-//                }
-//            }
-//        }
-//        return result
-//    }
-//
-//    fun readEncounter(rs: ResultSet): Encounter {
-//        return Encounter(rs.getLong("id"),
-//                rs.getString("name"),
-//                rs.getString("dm_name"),
-//                rs.getString("campaign_name"),
-//                rs.getLong("locationId"),
-//                rs.getString("location"),
-//                rs.getString("title"),
-//                rs.getInt("suggested_acl"));
-//    }
-//
-//    companion object {
-//        fun encounterQuery(id: Long? = null, accountId: Long? = null): String {
-//            val specific = if (id != null) " e.id=$id" else ""
-//            val account = if (accountId != null) " e.created_by=$accountId" else ""
-//            val where = if (!specific.isEmpty() || !account.isEmpty()) "WHERE" else ""
-//            val joiner = if (!specific.isEmpty() && !account.isEmpty()) "AND" else ""
-//            return "SELECT e.*, c.name AS campaign, l.id AS location_id, l.name AS location, r.name AS room " +
-//                    "ac.username AS dm_name, s.title " +
-//                    "FROM encounters e " +
-//                    "LEFT OUTER JOIN accounts ac ON e.dm_id = ac.id " +
-//                    "LEFT OUTER JOIN campaigns c ON e.campaign_id = c.id " +
-//                    "LEFT OUTER JOIN locations l ON e.location_id = l.id " +
-//                    "LEFT OUTER JOIN rooms r ON e.parent_location_id = r.id " +
-//                    "LEFT OUTER JOIN sources s ON e.source_id = s.id " +
-//                    "$where $account $joiner ${specific}";
-//        }
-//    }
+
 
 
     /**
@@ -203,24 +183,7 @@ object EncounterDao {
         }
     }
 
-//    private suspend fun combatantFromDdb(creature: Monster, combatantType: String, index: Int?) = dbQuery {
-//        Combatants.insertAndGetId {
-//            it[name] = creature.name
-//            it[type] = combatantType
-//            it[initiative] = creature.initiative
-//            it[hitpoints] = creature.currentHitPoints
-//            it[maximumHitpoints] = creature.maximumHitPoints
-//            it[temporaryHitpoints] = creature.temporaryHitPoints
-//            it[temporaryMaximum] = creature.maximumHitPoints
-//            it[groupId] = if (index == null) null else creature.groupId
-//            it[groupOrder] = index
-//            it[duration] = null
-//            it[createdOn] = Database.now
-//            it[updatedOn] = Database.now
-//            it[creatureId] = newCreatureId
-//            it[characterId] = null
-//        }
-//    }
+
     private suspend fun combatFromDdb(encounter: ca.kittle.models.integrations.encounter.Encounter, newEncounterId: Int): Int = dbQuery {
         Combats.insertAndGetId {
             it[inProgress] = encounter.inProgress ?: false
